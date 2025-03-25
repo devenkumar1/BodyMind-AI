@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
-import Button from '../components/ui/Button';
+import { Button } from '@/components/ui/Button';
 
 const registerSchema = z
   .object({
@@ -49,19 +49,19 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
+    <div className="flex justify-center items-center px-4 py-12 min-h-screen bg-gray-50 sm:px-6 lg:px-8">
+      <div className="space-y-8 w-full max-w-md">
         <div>
-          <h1 className="text-center text-3xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-3xl font-bold tracking-tight text-center text-gray-900">
             Freaky Fit
           </h1>
-          <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900">
+          <h2 className="mt-6 text-2xl font-bold tracking-tight text-center text-gray-900">
             Create your account
           </h2>
         </div>
 
         {error && (
-          <div className="rounded-md bg-red-50 p-4">
+          <div className="p-4 bg-red-50 rounded-md">
             <div className="text-sm text-red-700">{error}</div>
           </div>
         )}
@@ -127,7 +127,7 @@ const Register: React.FC = () => {
             </Button>
           </div>
 
-          <div className="text-center text-sm">
+          <div className="text-sm text-center">
             <p className="text-gray-600">
               Already have an account?{' '}
               <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
