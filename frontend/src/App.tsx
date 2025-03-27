@@ -10,7 +10,7 @@ import { InstallPrompt } from './components/InstallPrompt';
 function App() {
   return (
     <Router>
-      <ThemeProvider defaultTheme="light" storageKey="freaky-fit-theme">
+      <ThemeProvider defaultTheme="light" storageKey="bodymind-ai-theme">
         <NetworkProvider>
           <AuthProvider>
             <AppRoutes />

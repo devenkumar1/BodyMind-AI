@@ -70,7 +70,7 @@ export function InstallPrompt() {
       <div className="flex items-start">
         <div className="flex-shrink-0 mr-3 text-2xl">📱</div>
         <div className="flex-1">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Install Freaky Fit</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Install BodyMind AI</h3>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Install our app for a better experience with offline access and faster load times.
           </p>

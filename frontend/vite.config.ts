@@ -16,8 +16,8 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.svg', 'masked-icon.svg', 'offline.html'],
         manifest: {
-          name: 'Freaky Fit - AI Powered Fitness',
-          short_name: 'Freaky Fit',
+          name: 'BodyMind AI - AI Powered Fitness',
+          short_name: 'BodyMind AI',
           description: 'AI-powered fitness app for personalized workouts and meal plans',
           theme_color: '#ffffff',
           background_color: '#ffffff',

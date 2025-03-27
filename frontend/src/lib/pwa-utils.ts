@@ -1,5 +1,5 @@
 /**
- * PWA utility functions for the Freaky Fit app
+ * PWA utility functions for the BodyMind AI app
  */
 
 /**
