@@ -12,12 +12,14 @@ A modern fitness application built with the MERN stack (MongoDB, Express.js, Rea
 - Zod for validation
 - React Router
 - Axios
+- Dark/Light theme support
 
 ### Backend
 - Node.js with Express
 - TypeScript
 - MongoDB with Mongoose
 - JWT Authentication
+- Google OAuth integration
 - Zod for validation
 - Express Validator
 
@@ -67,10 +69,41 @@ cd frontend
 npm run dev
 ```
 
-## Features
-- User authentication (Login/Signup)
-- Modern and responsive UI
-- Type-safe development with TypeScript
-- Form validation with Zod
-- Secure API endpoints
-- MongoDB database integration 
+## Implemented Features
+
+### Authentication
+- User registration with email/password
+- User login with credentials
+- Google OAuth integration
+- Protected routes for authenticated users
+- Authentication state management
+
+### User Interface
+- Responsive navbar with authentication state
+- Landing page for non-authenticated users
+- Home dashboard for authenticated users
+- Footer with site navigation and social links
+- Dark/Light theme toggle
+
+### Fitness Features
+- User profile management
+- Workout generator with customizable options
+- Meal plan generator with dietary preferences
+- Training page with workout tracking
+
+### Pages
+- Landing Page: Introduction for non-authenticated users
+- Login/Register: User authentication
+- Home: Main dashboard for authenticated users
+- Profile: User information and settings
+- Training: Workout tracking interface
+- Meal Generator: Custom meal plan creation
+- Workout Generator: Custom workout routine creation
+
+## In Progress / Future Features
+- Activity tracking
+- Progress visualization
+- Social sharing
+- Exercise library
+- Nutritional information database
+- Mobile app integration 

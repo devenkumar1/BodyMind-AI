@@ -26,7 +26,7 @@ const protect = async (req, res, next) => {
             return res.status(401).json({ message: 'Not authorized, user not found' });
         }
         // Set user in request
-        req.user = { id: user._id.toString() };
+        req.user = user;
         next();
     }
     catch (error) {
@@ -35,18 +35,22 @@ const protect = async (req, res, next) => {
 };
 exports.protect = protect;
 // Admin middleware
-const admin = (req, res, next) => {
-    user_model_1.default.findById(req.user.id)
-        .then((user) => {
-        if (user && user.role === 'admin') {
+const admin = async (req, res, next) => {
+    var _a;
+    try {
+        if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a._id)) {
+            return res.status(401).json({ message: 'Not authorized, user not found' });
+        }
+        const user = await user_model_1.default.findById(req.user._id);
+        if ((user === null || user === void 0 ? void 0 : user.role) === 'admin') {
             next();
         }
         else {
             res.status(403).json({ message: 'Not authorized as admin' });
         }
-    })
-        .catch(() => {
+    }
+    catch (error) {
         res.status(401).json({ message: 'Not authorized, user not found' });
-    });
+    }
 };
 exports.admin = admin;

@@ -4,8 +4,11 @@ import bcrypt from 'bcryptjs';
 export interface IUser extends Document {
   name: string;
   email: string;
-  password: string;
+  password?: string;
   role: 'user' | 'admin';
+  googleId?: string;
+  avatar?: string;
+  authProvider: 'local' | 'google';
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -28,7 +31,9 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: [function(this: IUser) {
+        return this.authProvider === 'local';
+      }, 'Password is required for local authentication'],
       minlength: [6, 'Password must be at least 6 characters long'],
       select: false,
     },
@@ -36,6 +41,20 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ['user', 'admin'],
       default: 'user',
+    },
+    googleId: {
+      type: String,
+      sparse: true,
+      unique: true,
+    },
+    avatar: {
+      type: String,
+    },
+    authProvider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local',
+      required: true,
     },
   },
   {
@@ -45,11 +64,11 @@ const userSchema = new Schema<IUser>(
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || this.authProvider !== 'local') return next();
 
   try {
     const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    this.password = await bcrypt.hash(this.password!, salt);
     next();
   } catch (error: any) {
     next(error);
@@ -58,6 +77,7 @@ userSchema.pre('save', async function (next) {
 
 // Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  if (this.authProvider !== 'local') return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 

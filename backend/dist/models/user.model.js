@@ -54,7 +54,9 @@ const userSchema = new mongoose_1.Schema({
     },
     password: {
         type: String,
-        required: [true, 'Password is required'],
+        required: [function () {
+                return this.authProvider === 'local';
+            }, 'Password is required for local authentication'],
         minlength: [6, 'Password must be at least 6 characters long'],
         select: false,
     },
@@ -63,12 +65,26 @@ const userSchema = new mongoose_1.Schema({
         enum: ['user', 'admin'],
         default: 'user',
     },
+    googleId: {
+        type: String,
+        sparse: true,
+        unique: true,
+    },
+    avatar: {
+        type: String,
+    },
+    authProvider: {
+        type: String,
+        enum: ['local', 'google'],
+        default: 'local',
+        required: true,
+    },
 }, {
     timestamps: true,
 });
 // Hash password before saving
 userSchema.pre('save', async function (next) {
-    if (!this.isModified('password'))
+    if (!this.isModified('password') || this.authProvider !== 'local')
         return next();
     try {
         const salt = await bcryptjs_1.default.genSalt(10);
@@ -81,6 +97,8 @@ userSchema.pre('save', async function (next) {
 });
 // Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword) {
+    if (this.authProvider !== 'local')
+        return false;
     return bcryptjs_1.default.compare(candidatePassword, this.password);
 };
 const User = mongoose_1.default.model('User', userSchema);

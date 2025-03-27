@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import Home from './pages/Home';
@@ -8,23 +8,38 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthCallback from './pages/AuthCallback';
+import Dashboard from './pages/Dashboard';
+import LandingPage from './pages/LandingPage';
+import MealGenerator from './pages/MealGenerator';
+import WorkoutGenerator from './pages/WorkoutGenerator';
+import { useAuth } from './context/AuthContext';
 
 export default function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
       <main className="flex-1">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/training" element={<Training />} />
+          {/* Homepage route - redirects based on authentication status */}
+          <Route path="/" element={
+            isAuthenticated ? <Home /> : <LandingPage />
+          } />
+
+          {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
-            {/* Add protected routes here */}
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/training" element={<Training />} />
+            <Route path="/meal-generator" element={<MealGenerator />} />
+            <Route path="/workout-generator" element={<WorkoutGenerator />} />
+            <Route path="/meal-plan" element={<Navigate to="/meal-generator" />} />
           </Route>
 
           {/* Fallback route */}

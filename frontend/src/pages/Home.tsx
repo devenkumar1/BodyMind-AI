@@ -1,122 +1,198 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Activity, 
+  Calendar, 
+  LineChart, 
+  Dumbbell, 
+  Apple, 
+  MessagesSquare, 
+  User, 
+  Flame,
+  TrendingUp,
+  ArrowRight,
+  Utensils,
+  Target,
+  Timer,
+  Heart
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DumbbellIcon, Smartphone, BarChart3, Users, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="overflow-hidden relative py-12 bg-gradient-to-b sm:py-20 from-primary/5 to-background">
-        <div className="container relative z-10 px-4 sm:px-6">
-          <div className="grid gap-8 items-center lg:grid-cols-2 lg:gap-12">
-            <div className="space-y-6 sm:space-y-8">
-              <div className="space-y-4">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-                  Transform Your Body,<br className="hidden sm:block" />Transform Your Life
-                </h1>
-                <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-[600px]">
-                  Join Freaky Fit and discover a personalized fitness journey that adapts to your goals, schedule, and preferences.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-4">
-                {!isAuthenticated ? (
-                  <>
-                    <Link to="/register">
-                      <Button size="lg" className="px-6 h-12 sm:px-8">Get Started Free</Button>
-                    </Link>
-                    <Link to="/about">
-                      <Button variant="outline" size="lg" className="px-6 h-12 sm:px-8">Learn More</Button>
-                    </Link>
-                  </>
-                ) : (
-                  <Link to="/dashboard">
-                    <Button size="lg" className="px-6 h-12 sm:px-8">Go to Dashboard</Button>
-                  </Link>
-                )}
-              </div>
-            </div>
-            <div className="relative mt-8 lg:mt-0">
-              <img
-                src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop"
-                alt="Fitness Training"
-                className="object-cover w-full rounded-lg shadow-2xl"
-                style={{ aspectRatio: '16/9' }}
-              />
-            </div>
-          </div>
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Dashboard Hero Section - Simplified */}
+      <section className="relative py-10 overflow-hidden bg-gradient-to-r from-primary/10 to-background border-b">
+        <div className="container px-4 mx-auto sm:px-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center max-w-2xl mx-auto"
+          >
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Welcome back, {user?.name?.split(' ')[0] || 'there'}!
+            </h1>
+            <p className="mt-3 text-lg text-muted-foreground">
+              Your fitness journey continues. What would you like to do today?
+            </p>
+          </motion.div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-12 sm:py-20">
-        <div className="container px-4 sm:px-6">
-          <div className="mb-8 text-center sm:mb-12">
-            <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl lg:text-5xl">
-              Why Choose Freaky Fit?
-            </h2>
-            <p className="mt-4 text-base sm:text-lg md:text-xl text-muted-foreground">
-              Experience a new way of achieving your fitness goals
-            </p>
-          </div>
-          <div className="grid gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: DumbbellIcon,
-                title: "Personalized Workouts",
-                description: "Get custom workout plans tailored to your fitness level and goals"
-              },
-              {
-                icon: Smartphone,
-                title: "Track Progress",
-                description: "Monitor your workouts, nutrition, and progress all in one place"
-              },
-              {
-                icon: BarChart3,
-                title: "Data Analytics",
-                description: "Visualize your progress with detailed analytics and insights"
-              },
-              {
-                icon: Users,
-                title: "Community Support",
-                description: "Join a community of fitness enthusiasts and share your journey"
-              }
-            ].map((feature, index) => (
-              <Card key={index} className="border-none shadow-none">
-                <CardHeader>
-                  <feature.icon className="w-12 h-12 text-primary" />
-                  <CardTitle className="mt-4">{feature.title}</CardTitle>
+      {/* Quick Actions */}
+      <section className="py-12">
+        <div className="container px-4 mx-auto sm:px-6 max-w-5xl">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+          >
+            <Link to="/workout-generator" className="group">
+              <Card className="h-full transition-colors hover:border-primary hover:shadow-md group-hover:shadow-primary/10">
+                <CardHeader className="pb-2">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-2 group-hover:bg-primary/20 transition-colors">
+                    <Dumbbell className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle>Workout Builder</CardTitle>
+                  <CardDescription>Generate personalized workout plans</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">{feature.description}</p>
+                  <div className="text-sm text-muted-foreground mb-4">
+                    Build custom workouts based on your goals, equipment, and fitness level.
+                  </div>
+                  <Button variant="ghost" size="sm" className="group-hover:translate-x-1 transition-transform gap-1">
+                    Create Workout <ArrowRight className="h-4 w-4" />
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            </Link>
+
+            <Link to="/meal-generator" className="group">
+              <Card className="h-full transition-colors hover:border-primary hover:shadow-md group-hover:shadow-primary/10">
+                <CardHeader className="pb-2">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-2 group-hover:bg-primary/20 transition-colors">
+                    <Utensils className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle>Meal Planner</CardTitle>
+                  <CardDescription>Create custom meal plans</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-muted-foreground mb-4">
+                    Generate personalized meal plans to match your nutritional needs and preferences.
+                  </div>
+                  <Button variant="ghost" size="sm" className="group-hover:translate-x-1 transition-transform gap-1">
+                    Plan Meals <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/training" className="group">
+              <Card className="h-full transition-colors hover:border-primary hover:shadow-md group-hover:shadow-primary/10">
+                <CardHeader className="pb-2">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-2 group-hover:bg-primary/20 transition-colors">
+                    <Activity className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle>Start Training</CardTitle>
+                  <CardDescription>Begin your workout session</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-muted-foreground mb-4">
+                    Start a guided workout session with real-time tracking and feedback.
+                  </div>
+                  <Button variant="ghost" size="sm" className="group-hover:translate-x-1 transition-transform gap-1">
+                    Start Session <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/profile" className="group">
+              <Card className="h-full transition-colors hover:border-primary hover:shadow-md group-hover:shadow-primary/10">
+                <CardHeader className="pb-2">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-2 group-hover:bg-primary/20 transition-colors">
+                    <LineChart className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle>Progress</CardTitle>
+                  <CardDescription>Track your fitness journey</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-muted-foreground mb-4">
+                    View your progress, achievements, and set new fitness goals.
+                  </div>
+                  <Button variant="ghost" size="sm" className="group-hover:translate-x-1 transition-transform gap-1">
+                    View Stats <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+          </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-12 sm:py-20 bg-primary/5">
-        <div className="container px-4 sm:px-6">
-          <div className="flex flex-col items-center space-y-4 text-center">
-            <h2 className="text-2xl font-bold tracking-tighter sm:text-3xl md:text-4xl lg:text-5xl">
-              Ready to Start Your Journey?
-            </h2>
-            <p className="max-w-[600px] text-base sm:text-lg md:text-xl text-muted-foreground">
-              Join thousands of others who have transformed their lives with Freaky Fit
-            </p>
-            <Link to={isAuthenticated ? "/dashboard" : "/register"}>
-              <Button size="lg" className="px-6 mt-4 h-12 sm:px-8">
-                {isAuthenticated ? "Go to Dashboard" : "Get Started Today"}
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
+      {/* Weekly Summary */}
+      <section className="pb-12">
+        <div className="container px-4 mx-auto sm:px-6 max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Weekly Summary</CardTitle>
+                <CardDescription>Your activity for the past 7 days</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                  {[
+                    { 
+                      icon: <Timer className="w-5 h-5 text-primary" />, 
+                      title: "Active Time", 
+                      value: "5.2 hours",
+                      change: "+0.5 hrs from last week"
+                    },
+                    { 
+                      icon: <Flame className="w-5 h-5 text-primary" />, 
+                      title: "Calories Burned", 
+                      value: "3,240",
+                      change: "+6% from last week"
+                    },
+                    { 
+                      icon: <Dumbbell className="w-5 h-5 text-primary" />, 
+                      title: "Workouts", 
+                      value: "4 completed",
+                      change: "80% of your goal"
+                    },
+                    { 
+                      icon: <Heart className="w-5 h-5 text-primary" />, 
+                      title: "Average HR", 
+                      value: "132 BPM",
+                      change: "Good intensity zone"
+                    }
+                  ].map((stat, index) => (
+                    <div key={index} className="flex flex-col">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="p-2 rounded-md bg-primary/10">
+                          {stat.icon}
+                        </div>
+                        <span className="font-medium text-sm">{stat.title}</span>
+                      </div>
+                      <div className="text-2xl font-bold">{stat.value}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{stat.change}</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </section>
     </div>

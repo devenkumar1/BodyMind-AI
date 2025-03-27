@@ -1,34 +1,56 @@
-import express, { Express, Request, Response } from 'express';
-import dotenv from 'dotenv';
+import express from 'express';
+import session from 'express-session';
+import passport from 'passport';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import authRoutes from './routes/auth.routes';
-import userRoutes from './routes/user.routes';
-import connectDb from './config/db.config';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import authRoutes from './routes/auth';
+import './config/passport';
 
 // Load environment variables
 dotenv.config();
 
 // Create Express app
-const app: Express = express();
+const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/freaky-fit')
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 // Middleware
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true,
+}));
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(session({
+  secret: process.env.SESSION_SECRET!,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  },
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+app.use('/auth', authRoutes);
+
 
 // Home route
-app.get('/', (_req: Request, res: Response) => {
+app.get('/', (_req: express.Request, res: express.Response) => {
   res.send('Freaky Fit API is running');
 });
 
 //starting the server
-app.listen(PORT,()=>{
-  connectDb();
-  console.log(`Server is running on port ${PORT}`)
-})
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

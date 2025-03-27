@@ -66,7 +66,7 @@ const Login: React.FC = () => {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-4 rounded-md shadow-sm">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium text-foreground">
                   Email address
                 </label>
                 <Input
@@ -79,7 +79,7 @@ const Login: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium text-foreground">
                   Password
                 </label>
                 <Input
@@ -99,9 +99,9 @@ const Login: React.FC = () => {
             </div>
 
             <div className="text-sm text-center">
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Don't have an account?{' '}
-                <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
+                <Link to="/register" className="font-medium text-primary hover:text-primary/90">
                   Sign up
                 </Link>
               </p>

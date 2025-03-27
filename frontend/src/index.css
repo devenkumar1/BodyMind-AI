@@ -3,6 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Light mode (default) */
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -38,6 +39,7 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* Dark mode */
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -117,4 +119,11 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Add additional theme transition effects */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }

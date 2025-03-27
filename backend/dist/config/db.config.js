@@ -7,7 +7,7 @@ exports.connectDb = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const connectDb = async () => {
     try {
-        const connection = await mongoose_1.default.connect(process.env.MONGO_URI);
+        const connection = await mongoose_1.default.connect(process.env.MONGODB_URI);
         console.log(`Database connected successfully: ${connection.connection.host}`);
     }
     catch (error) {

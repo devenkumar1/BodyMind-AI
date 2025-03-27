@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import { z } from 'zod';
+import { geminiSetup } from '../libs/gemini';
 
 // Validation schema for user update
 const updateUserSchema = z.object({
@@ -11,17 +12,16 @@ const updateUserSchema = z.object({
 // Get user profile
 export const getUserProfile = async (req: Request, res: Response) => {
   try {
-    const user = await User.findById(req.user.id);
+    if (!req.user?._id) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
+    res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -30,38 +30,40 @@ export const getUserProfile = async (req: Request, res: Response) => {
 // Update user profile
 export const updateUserProfile = async (req: Request, res: Response) => {
   try {
-    // Validate request body
-    const validatedData = updateUserSchema.parse(req.body);
+    if (!req.user?._id) {
+      return res.status(401).json({ message: 'User not found' });
+    }
 
-    // Check if email already exists (if updating email)
-    if (validatedData.email) {
-      const existingUser = await User.findOne({ email: validatedData.email });
-      if (existingUser && existingUser._id.toString() !== req.user.id) {
-        return res.status(400).json({ message: 'Email already in use' });
+    const { name, email } = req.body;
+
+    // Check if email is already taken
+    if (email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser && existingUser._id.toString() !== req.user._id.toString()) {
+        return res.status(400).json({ message: 'Email already taken' });
       }
     }
 
     // Update user
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { $set: validatedData },
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { name, email } },
       { new: true }
     );
 
-    if (!user) {
+    if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
+    res.json(updatedUser);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: error.errors[0].message });
-    }
     res.status(500).json({ message: 'Server error' });
   }
 }; 
+
+
+export const geminifunctiocall=async(req:Request,res:Response)=>{
+
+geminiSetup();
+
+}

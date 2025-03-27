@@ -4,28 +4,49 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const dotenv_1 = __importDefault(require("dotenv"));
+const express_session_1 = __importDefault(require("express-session"));
+const passport_1 = __importDefault(require("passport"));
 const cors_1 = __importDefault(require("cors"));
-const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
-const user_routes_1 = __importDefault(require("./routes/user.routes"));
-const db_config_1 = __importDefault(require("./config/db.config"));
+const mongoose_1 = __importDefault(require("mongoose"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const auth_1 = __importDefault(require("./routes/auth"));
+require("./config/passport");
 // Load environment variables
 dotenv_1.default.config();
 // Create Express app
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
+// Connect to MongoDB
+mongoose_1.default.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/freaky-fit')
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((err) => console.error('MongoDB connection error:', err));
 // Middleware
+app.use((0, cors_1.default)({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+}));
 app.use(express_1.default.json());
-app.use((0, cors_1.default)());
+app.use((0, cookie_parser_1.default)());
+app.use((0, express_session_1.default)({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+}));
+// Initialize Passport
+app.use(passport_1.default.initialize());
+app.use(passport_1.default.session());
 // Routes
-app.use('/api/auth', auth_routes_1.default);
-app.use('/api/users', user_routes_1.default);
+app.use('/auth', auth_1.default);
 // Home route
 app.get('/', (_req, res) => {
     res.send('Freaky Fit API is running');
 });
 //starting the server
 app.listen(PORT, () => {
-    (0, db_config_1.default)();
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
