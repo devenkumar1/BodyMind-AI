@@ -35,6 +35,7 @@ export default function AppRoutes() {
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/training" element={<Training />} />
             <Route path="/meal-generator" element={<MealGenerator />} />

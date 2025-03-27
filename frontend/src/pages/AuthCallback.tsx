@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { DropdownMenu, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
-  const { checkAuthStatus } = useAuth();
+  const { checkAuthStatus, logout } = useAuth();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -15,7 +17,7 @@ export default function AuthCallback() {
         if (token) {
           localStorage.setItem('token', token);
           await checkAuthStatus();
-          navigate('/dashboard');
+          navigate('/home');
         } else {
           console.error('No token received');
           navigate('/login');
