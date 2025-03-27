@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../context/AuthContext';
-import Input from '../components/ui/Input';
-import { Button } from '@/components/ui/button'
+import Input from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button'
 import { GoogleLoginButton } from "@/components/GoogleLoginButton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 

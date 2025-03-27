@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { DumbbellIcon, InstagramIcon, TwitterIcon, FacebookIcon, GithubIcon, Heart, Mail } from 'lucide-react';
-import Input from '@/components/ui/input';
+import { Button } from '@/components/ui/Button';
+import { DumbbellIcon, InstagramIcon, TwitterIcon, FacebookIcon, Github, Heart, Mail } from 'lucide-react';
+// import Input from '@/components/ui/input';
+import Input from '@/components/ui/Input';
 import { Separator } from '@/components/ui/separator';
 
 export function Footer() {
@@ -89,7 +90,7 @@ export function Footer() {
                 <FacebookIcon className="w-4 h-4" />
               </Button>
               <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full">
-                <GithubIcon className="w-4 h-4" />
+                <Github className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -99,10 +100,10 @@ export function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Freaky Fit. All rights reserved.
+            &copy; {new Date().getFullYear()} BodyMind AI. All rights reserved.
           </p>
           <p className="flex items-center text-xs text-muted-foreground">
-            Made with <Heart className="w-3 h-3 mx-1 text-destructive" /> by Freaky Fit Team
+            Made by BodyMind AI Team
           </p>
         </div>
       </div>

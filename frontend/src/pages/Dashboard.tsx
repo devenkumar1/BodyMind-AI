@@ -8,8 +8,8 @@ function Dashboard() {
         <h1>welcome to the dashboard</h1>
 
         <div className='flex flex-col items-center'>
-     <h2>your status</h2>
-     <Calendar/>
+        <h2>your status</h2>
+        <Calendar/>
         </div>
 
         <div></div>

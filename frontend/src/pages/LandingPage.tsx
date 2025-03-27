@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -39,6 +39,37 @@ const itemVariants = {
 };
 
 const LandingPage = () => {
+  // smooth scrolling behavior
+  useEffect(() => {
+    // smooth scrolling to anchor links
+    const handleSmoothScroll = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a');
+      
+      if (link && link.hash && link.hash.startsWith('#')) {
+        e.preventDefault();
+        const targetId = link.hash.substring(1);
+        const targetElement = document.getElementById(targetId);
+        
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop,
+            behavior: 'smooth'
+          });
+          
+          // Update URL hash without causing a jump
+          history.pushState(null, '', link.hash);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleSmoothScroll);
+    
+    return () => {
+      document.removeEventListener('click', handleSmoothScroll);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section - Using a custom gradient that works in both themes */}
@@ -102,7 +133,7 @@ const LandingPage = () => {
             animate={{ y: [0, 10, 0] }} 
             transition={{ duration: 1.5, repeat: Infinity }}
           >
-            <a href="#features" className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 backdrop-blur-md shadow-lg hover:bg-primary/30 transition-colors">
+            <a href="#features" className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 backdrop-blur-md shadow-lg hover:bg-primary/30 transition-colors" aria-label="Scroll to features section">
               <ArrowRight className="w-6 h-6 rotate-90 text-primary" />
             </a>
           </motion.div>
@@ -180,7 +211,7 @@ const LandingPage = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">How Freaky Fit Works</h2>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">How BodyMind AI Works ?</h2>
             <p className="mt-4 text-xl text-muted-foreground">Simple steps to transform your fitness journey</p>
           </motion.div>
           

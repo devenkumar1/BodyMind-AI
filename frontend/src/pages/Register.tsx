@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../context/AuthContext';
-import Input from '../components/ui/Input';
+import Input from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Dumbbell } from 'lucide-react';
@@ -51,12 +51,12 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center px-4 py-12 min-h-screen bg-background sm:px-6 lg:px-8">
+    <div className="flex overflow-hidden justify-center items-center px-4 py-12 min-h-screen bg-background sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 flex flex-col items-center pb-2">
           <div className="flex items-center space-x-2">
             <Dumbbell className="w-6 h-6 text-primary" />
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Freaky Fit</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">BodyMind AI</h1>
           </div>
           <h2 className="text-2xl font-bold tracking-tight text-center text-foreground">
             Create your account

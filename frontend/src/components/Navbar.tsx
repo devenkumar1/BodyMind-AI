@@ -116,7 +116,7 @@ export function Navbar() {
             <div className="w-9 h-9 flex items-center justify-center bg-primary rounded-lg text-primary-foreground">
               <Dumbbell className="w-5 h-5" />
             </div>
-            <span className="text-xl font-bold tracking-tight">Freaky Fit</span>
+            <span className="text-xl font-bold tracking-tight">BodyMind AI</span>
           </Link>
 
           {/* Desktop Navigation */}
