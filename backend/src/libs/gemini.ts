@@ -83,7 +83,7 @@ export async function gemini(prompt: string): Promise<{
         // Clean the response text to ensure valid 
         if(!text) throw new Error('No response from Gemini');
         const cleanedText = text.replace(/```json\n?|\n?```/g, '').trim();
-        
+        //new
         try {
             // Parse the JSON response
             const parsedResponse = JSON.parse(cleanedText) as WorkoutPlan;

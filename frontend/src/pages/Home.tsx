@@ -64,7 +64,7 @@ export default function Home() {
                   <CardDescription>Generate personalized workout plans</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-sm text-muted-foreground mb-4">
+                  <div className="text-sm text-muted-foreground mb-4">+
                     Build custom workouts based on your goals, equipment, and fitness level.
                   </div>
                   <Button variant="ghost" size="sm" className="group-hover:translate-x-1 transition-transform gap-1">

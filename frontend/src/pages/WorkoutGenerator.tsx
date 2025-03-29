@@ -20,7 +20,12 @@ import {
   Heart,
   ArrowRight,
   CheckCircle,
+  Loader2,
 } from 'lucide-react';
+import axios from 'axios';
+import { Input } from "@/components/ui/input";
+import { WorkoutPlanDisplay } from "@/components/WorkoutPlanDisplay";
+import { useToast } from "@/components/ui/use-toast";
 
 const fitnessLevels = [
   { value: 'beginner', label: 'Beginner' },
@@ -48,149 +53,37 @@ const equipmentOptions = [
   { id: 'pullup-bar', label: 'Pull-up Bar' },
 ];
 
-// Sample workouts for demonstration
-const sampleWorkouts = {
-  upper: [
-    {
-      name: "Push-Up",
-      sets: 3, 
-      reps: "10-12",
-      rest: 60,
-      image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-      description: "Start in a plank position with hands shoulder-width apart. Lower your body until your chest nearly touches the floor, then push back up.",
-      muscles: ["Chest", "Shoulders", "Triceps"],
-      difficulty: "Beginner",
-      video: "https://www.youtube.com/watch?v=IODxDxX7oi4"
-    },
-    {
-      name: "Dumbbell Bench Press",
-      sets: 4, 
-      reps: "8-10",
-      rest: 90,
-      image: "https://images.unsplash.com/photo-1534368786749-d80adbc0d320?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-      description: "Lie on a bench with a dumbbell in each hand. Push the weights up until your arms are straight, then lower them back down.",
-      muscles: ["Chest", "Shoulders", "Triceps"],
-      difficulty: "Intermediate",
-      video: "https://www.youtube.com/watch?v=QwuUZ5wgQOk"
-    },
-    {
-      name: "Pull-Up",
-      sets: 3, 
-      reps: "8-10",
-      rest: 90,
-      image: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1452&q=80",
-      description: "Hang from a bar with palms facing away. Pull yourself up until your chin is over the bar, then lower back down with control.",
-      muscles: ["Back", "Biceps", "Forearms"],
-      difficulty: "Intermediate",
-      video: "https://www.youtube.com/watch?v=eGo4IYlbE5g"
-    },
-    {
-      name: "Dumbbell Shoulder Press",
-      sets: 3, 
-      reps: "10-12",
-      rest: 60,
-      image: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80",
-      description: "Sit or stand with a dumbbell in each hand at shoulder height. Press the weights up until your arms are straight, then lower them back down.",
-      muscles: ["Shoulders", "Triceps"],
-      difficulty: "Beginner",
-      video: "https://www.youtube.com/watch?v=qEwKCR5JCog"
-    }
-  ],
-  lower: [
-    {
-      name: "Squat",
-      sets: 4, 
-      reps: "12-15",
-      rest: 90,
-      image: "https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80",
-      description: "Stand with feet shoulder-width apart. Lower your body as if sitting in a chair, keeping your chest up. Push through your heels to return to standing.",
-      muscles: ["Quadriceps", "Glutes", "Hamstrings"],
-      difficulty: "Beginner",
-      video: "https://www.youtube.com/watch?v=YaXPRqUwItQ"
-    },
-    {
-      name: "Romanian Deadlift",
-      sets: 3, 
-      reps: "10-12",
-      rest: 90,
-      image: "https://images.unsplash.com/photo-1600881333168-2ef49b341f30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80",
-      description: "Hold a barbell or dumbbells in front of your thighs. Hinge at the hips while keeping your back straight, lowering the weight towards the floor. Return to standing by driving your hips forward.",
-      muscles: ["Hamstrings", "Glutes", "Lower Back"],
-      difficulty: "Intermediate",
-      video: "https://www.youtube.com/watch?v=5rIqN1XZ5jU"
-    },
-    {
-      name: "Lunges",
-      sets: 3, 
-      reps: "10-12 each leg",
-      rest: 60,
-      image: "https://images.unsplash.com/photo-1434608519344-49d8a9e40874?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-      description: "Step forward with one leg and lower your body until both knees are bent at a 90-degree angle. Push off the front foot to return to the starting position.",
-      muscles: ["Quadriceps", "Glutes", "Hamstrings"],
-      difficulty: "Beginner",
-      video: "https://www.youtube.com/watch?v=QOVaHwm-Q6U"
-    },
-    {
-      name: "Calf Raises",
-      sets: 3, 
-      reps: "15-20",
-      rest: 45,
-      image: "https://images.unsplash.com/photo-1607962837359-5e7e89f86776?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-      description: "Stand with feet hip-width apart. Rise up onto the balls of your feet, then lower your heels back down.",
-      muscles: ["Calves"],
-      difficulty: "Beginner",
-      video: "https://www.youtube.com/watch?v=gwLzBJYoWlI"
-    }
-  ],
-  full: [
-    {
-      name: "Burpee",
-      sets: 3, 
-      reps: "10-15",
-      rest: 60,
-      image: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80",
-      description: "Start standing, then squat down and place hands on floor. Jump feet back to a plank, perform a push-up, jump feet forward, then explosively jump up with arms overhead.",
-      muscles: ["Full Body", "Cardiovascular"],
-      difficulty: "Intermediate",
-      video: "https://www.youtube.com/watch?v=TU8QYVW0gDU"
-    },
-    {
-      name: "Kettlebell Swing",
-      sets: 3, 
-      reps: "15-20",
-      rest: 60,
-      image: "https://images.unsplash.com/photo-1604247584233-99c3f9ea18f5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-      description: "Stand with feet shoulder-width apart, holding a kettlebell with both hands. Hinge at the hips and swing the kettlebell between your legs, then thrust your hips forward to swing the kettlebell to chest height.",
-      muscles: ["Glutes", "Hamstrings", "Core", "Shoulders"],
-      difficulty: "Intermediate",
-      video: "https://www.youtube.com/watch?v=Buz6gaVzVZs"
-    },
-    {
-      name: "Mountain Climber",
-      sets: 3, 
-      reps: "20-30 seconds",
-      rest: 45,
-      image: "https://images.unsplash.com/photo-1597452485669-2c7bb5fef90d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80",
-      description: "Start in a plank position. Rapidly alternate bringing your knees toward your chest, as if running in place in a plank position.",
-      muscles: ["Core", "Shoulders", "Cardiovascular"],
-      difficulty: "Beginner",
-      video: "https://www.youtube.com/watch?v=nmwgirgXLYM"
-    },
-    {
-      name: "Turkish Get-Up",
-      sets: 2, 
-      reps: "5-6 each side",
-      rest: 90,
-      image: "https://images.unsplash.com/photo-1620188467120-5042ed1eb5da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80",
-      description: "Lie on your back holding a kettlebell or dumbbell above your shoulder. Rise to a standing position while keeping the weight overhead, then reverse the movement to return to the starting position.",
-      muscles: ["Full Body", "Core", "Shoulders", "Stability"],
-      difficulty: "Advanced",
-      video: "https://www.youtube.com/watch?v=jFK8FOGnXLw"
-    }
-  ]
-};
+interface WorkoutPlan {
+    description: string;
+    schedule: {
+        [key: string]: string;
+    };
+    exercises: Array<{
+        name: string;
+        sets: number;
+        reps: string;
+        description: string;
+    }>;
+    warm_up: {
+        description: string;
+        exercises: Array<{
+            name: string;
+            duration: string;
+            description: string;
+        }>;
+    };
+    cool_down: {
+        description: string;
+        exercises: Array<{
+            name: string;
+            duration: string;
+            description: string;
+        }>;
+    };
+}
 
 const WorkoutGenerator = () => {
+  const { toast } = useToast();
   const [fitnessLevel, setFitnessLevel] = useState('intermediate');
   const [fitnessGoal, setFitnessGoal] = useState('strength');
   const [workoutDuration, setWorkoutDuration] = useState(45);
@@ -201,6 +94,14 @@ const WorkoutGenerator = () => {
   const [generating, setGenerating] = useState(false);
   const [workouts, setWorkouts] = useState<any>(null);
   const [activeWorkoutType, setActiveWorkoutType] = useState('upper');
+  const [loading, setLoading] = useState(false);
+  const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
+  const [formData, setFormData] = useState({
+    fitnessLevel: "",
+    fitnessGoal: "",
+    duration: "",
+    daysPerweek: ""
+  });
   
   const handleEquipmentChange = (checked: boolean, id: string) => {
     if (checked) {
@@ -210,18 +111,65 @@ const WorkoutGenerator = () => {
     }
   };
   
-  const handleGenerate = () => {
+  const handleGenerate = async() => {
     setGenerating(true);
-    
-    // Simulating API call delay
-    setTimeout(() => {
-      setWorkouts(sampleWorkouts);
-      setGenerating(false);
-    }, 1500);
+    try {
+      const response= await axios.post('/generate-workout', { fitnessLevel, fitnessGoal, workoutDuration, workoutsPerWeek });
+      console.log(response.data);
+    } catch (error) {
+      console.log("error occured while generating a workout",error);
+    }
+
   };
   
   const handleReset = () => {
     setWorkouts(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/fitness/workout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to generate workout plan");
+      }
+
+      if (data.success && data.data?.workout_plan) {
+        setWorkoutPlan(data.data.workout_plan);
+        toast({
+          title: "Success!",
+          description: "Your workout plan has been generated.",
+        });
+      } else {
+        throw new Error(data.message || "Invalid response format");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate workout plan",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   return (
@@ -509,6 +457,10 @@ const WorkoutGenerator = () => {
             </Card>
           )}
         </div>
+      </div>
+
+      <div className="mt-8">
+        <WorkoutPlanDisplay plan={workoutPlan} />
       </div>
     </div>
   );
