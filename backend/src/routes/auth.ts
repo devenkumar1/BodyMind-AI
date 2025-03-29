@@ -43,9 +43,9 @@ router.get(
   (req: Request, res: Response) => {
     if (req.user) {
       const token = generateToken(req.user);
-      res.redirect(`http://localhost:5173/auth/callback?token=${token}`);
+      res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${token}`);
     } else {
-      res.redirect(`http://localhost:5173/login?error=auth_failed`);
+      res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`);
     }
   }
 );

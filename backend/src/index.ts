@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth';
 import './config/passport';
+import userRoutes from './routes/user.routes.ts'
 
 // Load environment variables
 dotenv.config();
@@ -43,6 +44,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/api/user',userRoutes);
 
 
 // Home route
