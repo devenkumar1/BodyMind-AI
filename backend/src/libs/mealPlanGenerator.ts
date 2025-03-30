@@ -28,14 +28,24 @@ interface Meal {
     instructions: string;
 }
 
+interface DailyMeals {
+    breakfast: Meal[];
+    lunch: Meal[];
+    dinner: Meal[];
+    snacks: Meal[];
+}
+
 interface MealPlan {
     description: string;
     daily_calories: number;
-    meals: {
-        breakfast: Meal[];
-        lunch: Meal[];
-        dinner: Meal[];
-        snacks: Meal[];
+    weekly_plan: {
+        monday: DailyMeals;
+        tuesday: DailyMeals;
+        wednesday: DailyMeals;
+        thursday: DailyMeals;
+        friday: DailyMeals;
+        saturday: DailyMeals;
+        sunday: DailyMeals;
     };
 }
 
@@ -92,135 +102,146 @@ export async function generateMealPlan(request: MealPlanRequest): Promise<{
             };
         }
 
-        if (!mealPlan.meals || typeof mealPlan.meals !== 'object') {
-            console.error('Missing or invalid meals object in meal plan');
+        if (!mealPlan.weekly_plan || typeof mealPlan.weekly_plan !== 'object') {
+            console.error('Missing or invalid weekly_plan object in meal plan');
             return {
                 success: false,
-                message: "Invalid meal plan structure: missing meals object",
-                error: "Missing or invalid meals object"
+                message: "Invalid meal plan structure: missing weekly_plan object",
+                error: "Missing or invalid weekly_plan object"
             };
         }
 
-        // Check meal types
-        const requiredMealTypes = ['breakfast', 'lunch', 'dinner', 'snacks'] as const;
-        type MealType = typeof requiredMealTypes[number];
-        
-        for (const mealType of requiredMealTypes) {
-            if (!Array.isArray(mealPlan.meals[mealType as keyof typeof mealPlan.meals])) {
-                console.error(`Invalid meal type structure for ${mealType}:`, mealPlan.meals[mealType as keyof typeof mealPlan.meals]);
+        // Check each day of the week
+        const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+        for (const day of weekDays) {
+            if (!mealPlan.weekly_plan[day] || typeof mealPlan.weekly_plan[day] !== 'object') {
+                console.error(`Missing or invalid ${day} in weekly plan`);
                 return {
                     success: false,
-                    message: `Invalid meal plan structure: ${mealType} must be an array`,
-                    error: `Invalid ${mealType} structure`
+                    message: `Invalid meal plan structure: missing or invalid ${day}`,
+                    error: `Missing or invalid ${day} in weekly plan`
                 };
             }
 
-            // Validate each meal in the array
-            mealPlan.meals[mealType as keyof typeof mealPlan.meals].forEach((meal: any, index: number) => {
-                // Check required fields
-                const requiredFields = ['name', 'calories', 'protein', 'carbs', 'fat', 'prepTime', 'image', 'ingredients', 'instructions'];
-                for (const field of requiredFields) {
-                    if (!(field in meal)) {
-                        console.error(`Missing required field ${field} in ${mealType} meal ${index + 1}`);
+            // Check meal types for each day
+            const requiredMealTypes = ['breakfast', 'lunch', 'dinner', 'snacks'] as const;
+            for (const mealType of requiredMealTypes) {
+                if (!Array.isArray(mealPlan.weekly_plan[day][mealType])) {
+                    console.error(`Invalid meal type structure for ${day} ${mealType}:`, mealPlan.weekly_plan[day][mealType]);
+                    return {
+                        success: false,
+                        message: `Invalid meal plan structure: ${day} ${mealType} must be an array`,
+                        error: `Invalid ${day} ${mealType} structure`
+                    };
+                }
+
+                // Validate each meal in the array
+                mealPlan.weekly_plan[day][mealType].forEach((meal: any, index: number) => {
+                    // Check required fields
+                    const requiredFields = ['name', 'calories', 'protein', 'carbs', 'fat', 'prepTime', 'image', 'ingredients', 'instructions'];
+                    for (const field of requiredFields) {
+                        if (!(field in meal)) {
+                            console.error(`Missing required field ${field} in ${day} ${mealType} meal ${index + 1}`);
+                            return {
+                                success: false,
+                                message: `Invalid meal structure: missing ${field} in ${day} ${mealType} meal ${index + 1}`,
+                                error: `Missing ${field} in ${day} ${mealType} meal ${index + 1}`
+                            };
+                        }
+                    }
+
+                    // Validate field types
+                    if (typeof meal.calories !== 'number' || isNaN(meal.calories)) {
+                        console.error(`Invalid calories type in ${day} ${mealType} meal ${index + 1}:`, meal.calories);
                         return {
                             success: false,
-                            message: `Invalid meal structure: missing ${field} in ${mealType} meal ${index + 1}`,
-                            error: `Missing ${field} in ${mealType} meal ${index + 1}`
+                            message: `Invalid meal structure: calories must be a number in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Invalid calories type in ${day} ${mealType} meal ${index + 1}`
                         };
                     }
-                }
 
-                // Validate field types
-                if (typeof meal.calories !== 'number' || isNaN(meal.calories)) {
-                    console.error(`Invalid calories type in ${mealType} meal ${index + 1}:`, meal.calories);
-                    return {
-                        success: false,
-                        message: `Invalid meal structure: calories must be a number in ${mealType} meal ${index + 1}`,
-                        error: `Invalid calories type in ${mealType} meal ${index + 1}`
-                    };
-                }
+                    if (typeof meal.protein !== 'number' || isNaN(meal.protein)) {
+                        console.error(`Invalid protein type in ${day} ${mealType} meal ${index + 1}:`, meal.protein);
+                        return {
+                            success: false,
+                            message: `Invalid meal structure: protein must be a number in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Invalid protein type in ${day} ${mealType} meal ${index + 1}`
+                        };
+                    }
 
-                if (typeof meal.protein !== 'number' || isNaN(meal.protein)) {
-                    console.error(`Invalid protein type in ${mealType} meal ${index + 1}:`, meal.protein);
-                    return {
-                        success: false,
-                        message: `Invalid meal structure: protein must be a number in ${mealType} meal ${index + 1}`,
-                        error: `Invalid protein type in ${mealType} meal ${index + 1}`
-                    };
-                }
+                    if (typeof meal.carbs !== 'number' || isNaN(meal.carbs)) {
+                        console.error(`Invalid carbs type in ${day} ${mealType} meal ${index + 1}:`, meal.carbs);
+                        return {
+                            success: false,
+                            message: `Invalid meal structure: carbs must be a number in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Invalid carbs type in ${day} ${mealType} meal ${index + 1}`
+                        };
+                    }
 
-                if (typeof meal.carbs !== 'number' || isNaN(meal.carbs)) {
-                    console.error(`Invalid carbs type in ${mealType} meal ${index + 1}:`, meal.carbs);
-                    return {
-                        success: false,
-                        message: `Invalid meal structure: carbs must be a number in ${mealType} meal ${index + 1}`,
-                        error: `Invalid carbs type in ${mealType} meal ${index + 1}`
-                    };
-                }
+                    if (typeof meal.fat !== 'number' || isNaN(meal.fat)) {
+                        console.error(`Invalid fat type in ${day} ${mealType} meal ${index + 1}:`, meal.fat);
+                        return {
+                            success: false,
+                            message: `Invalid meal structure: fat must be a number in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Invalid fat type in ${day} ${mealType} meal ${index + 1}`
+                        };
+                    }
 
-                if (typeof meal.fat !== 'number' || isNaN(meal.fat)) {
-                    console.error(`Invalid fat type in ${mealType} meal ${index + 1}:`, meal.fat);
-                    return {
-                        success: false,
-                        message: `Invalid meal structure: fat must be a number in ${mealType} meal ${index + 1}`,
-                        error: `Invalid fat type in ${mealType} meal ${index + 1}`
-                    };
-                }
+                    if (typeof meal.prepTime !== 'number' || isNaN(meal.prepTime)) {
+                        console.error(`Invalid prepTime type in ${day} ${mealType} meal ${index + 1}:`, meal.prepTime);
+                        return {
+                            success: false,
+                            message: `Invalid meal structure: prepTime must be a number in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Invalid prepTime type in ${day} ${mealType} meal ${index + 1}`
+                        };
+                    }
 
-                if (typeof meal.prepTime !== 'number' || isNaN(meal.prepTime)) {
-                    console.error(`Invalid prepTime type in ${mealType} meal ${index + 1}:`, meal.prepTime);
-                    return {
-                        success: false,
-                        message: `Invalid meal structure: prepTime must be a number in ${mealType} meal ${index + 1}`,
-                        error: `Invalid prepTime type in ${mealType} meal ${index + 1}`
-                    };
-                }
+                    if (meal.prepTime > request.preparationTime) {
+                        console.error(`Prep time exceeds maximum in ${day} ${mealType} meal ${index + 1}:`, meal.prepTime);
+                        return {
+                            success: false,
+                            message: `Invalid meal structure: prep time exceeds maximum in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Prep time exceeds maximum in ${day} ${mealType} meal ${index + 1}`
+                        };
+                    }
 
-                if (meal.prepTime > request.preparationTime) {
-                    console.error(`Prep time exceeds maximum in ${mealType} meal ${index + 1}:`, meal.prepTime);
-                    return {
-                        success: false,
-                        message: `Invalid meal structure: prep time exceeds maximum in ${mealType} meal ${index + 1}`,
-                        error: `Prep time exceeds maximum in ${mealType} meal ${index + 1}`
-                    };
-                }
+                    if (!Array.isArray(meal.ingredients)) {
+                        console.error(`Invalid ingredients type in ${day} ${mealType} meal ${index + 1}:`, meal.ingredients);
+                        return {
+                            success: false,
+                            message: `Invalid meal structure: ingredients must be an array in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Invalid ingredients type in ${day} ${mealType} meal ${index + 1}`
+                        };
+                    }
 
-                if (!Array.isArray(meal.ingredients)) {
-                    console.error(`Invalid ingredients type in ${mealType} meal ${index + 1}:`, meal.ingredients);
-                    return {
-                        success: false,
-                        message: `Invalid meal structure: ingredients must be an array in ${mealType} meal ${index + 1}`,
-                        error: `Invalid ingredients type in ${mealType} meal ${index + 1}`
-                    };
-                }
+                    if (typeof meal.instructions !== 'string') {
+                        console.error(`Invalid instructions type in ${day} ${mealType} meal ${index + 1}:`, meal.instructions);
+                        return {
+                            success: false,
+                            message: `Invalid meal structure: instructions must be a string in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Invalid instructions type in ${day} ${mealType} meal ${index + 1}`
+                        };
+                    }
 
-                if (typeof meal.instructions !== 'string') {
-                    console.error(`Invalid instructions type in ${mealType} meal ${index + 1}:`, meal.instructions);
-                    return {
-                        success: false,
-                        message: `Invalid meal structure: instructions must be a string in ${mealType} meal ${index + 1}`,
-                        error: `Invalid instructions type in ${mealType} meal ${index + 1}`
-                    };
-                }
+                    if (typeof meal.image !== 'string') {
+                        console.error(`Invalid image type in ${day} ${mealType} meal ${index + 1}:`, meal.image);
+                        return {
+                            success: false,
+                            message: `Invalid meal structure: image must be a string in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Invalid image type in ${day} ${mealType} meal ${index + 1}`
+                        };
+                    }
 
-                if (typeof meal.image !== 'string') {
-                    console.error(`Invalid image type in ${mealType} meal ${index + 1}:`, meal.image);
-                    return {
-                        success: false,
-                        message: `Invalid meal structure: image must be a string in ${mealType} meal ${index + 1}`,
-                        error: `Invalid image type in ${mealType} meal ${index + 1}`
-                    };
-                }
-
-                if (typeof meal.name !== 'string') {
-                    console.error(`Invalid name type in ${mealType} meal ${index + 1}:`, meal.name);
-                    return {
-                        success: false,
-                        message: `Invalid meal structure: name must be a string in ${mealType} meal ${index + 1}`,
-                        error: `Invalid name type in ${mealType} meal ${index + 1}`
-                    };
-                }
-            });
+                    if (typeof meal.name !== 'string') {
+                        console.error(`Invalid name type in ${day} ${mealType} meal ${index + 1}:`, meal.name);
+                        return {
+                            success: false,
+                            message: `Invalid meal structure: name must be a string in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Invalid name type in ${day} ${mealType} meal ${index + 1}`
+                        };
+                    }
+                });
+            }
         }
 
         return {

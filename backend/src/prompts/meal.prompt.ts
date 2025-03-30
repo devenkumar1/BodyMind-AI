@@ -13,160 +13,121 @@ interface MealPlanRequest {
     isLowFat: boolean;
 }
 
-export const mealPrompt = ({
-    dailyCalories,
-    dietType,
-    excludeIngredients = [],
-    preparationTime,
-    isVegetarian,
-    isVegan,
-    isGlutenFree,
-    isDairyFree,
-    isKeto,
-    isLowCarb,
-    isHighProtein,
-    isLowFat
-}: MealPlanRequest) => {
-    // Validate required fields with better error messages
-    if (typeof dailyCalories !== 'number' || isNaN(dailyCalories)) {
-        throw new Error(`Invalid dailyCalories: ${dailyCalories}. Must be a valid number.`);
-    }
-    if (typeof dietType !== 'string' || !dietType.trim()) {
-        throw new Error(`Invalid dietType: ${dietType}. Must be a non-empty string.`);
-    }
-    if (typeof preparationTime !== 'number' || isNaN(preparationTime)) {
-        throw new Error(`Invalid preparationTime: ${preparationTime}. Must be a valid number.`);
-    }
+export const mealPrompt = (request: MealPlanRequest): string => {
+    const dietaryRestrictions = [];
+    if (request.isVegetarian) dietaryRestrictions.push('vegetarian');
+    if (request.isVegan) dietaryRestrictions.push('vegan');
+    if (request.isGlutenFree) dietaryRestrictions.push('gluten-free');
+    if (request.isDairyFree) dietaryRestrictions.push('dairy-free');
+    if (request.isKeto) dietaryRestrictions.push('keto');
+    if (request.isLowCarb) dietaryRestrictions.push('low-carb');
+    if (request.isHighProtein) dietaryRestrictions.push('high-protein');
+    if (request.isLowFat) dietaryRestrictions.push('low-fat');
 
-    // Ensure excludeIngredients is an array
-    const ingredientsToExclude = Array.isArray(excludeIngredients) ? excludeIngredients : [];
+    const restrictionsText = dietaryRestrictions.length > 0 
+        ? `The meals must be ${dietaryRestrictions.join(', ')}.` 
+        : '';
 
-    // Calculate total calories for each meal type
-    const breakfastCalories = Math.round(dailyCalories * 0.3);
-    const lunchCalories = Math.round(dailyCalories * 0.35);
-    const dinnerCalories = Math.round(dailyCalories * 0.35);
-    const snacksCalories = Math.round(dailyCalories * 0.1);
+    const excludeText = request.excludeIngredients.length > 0
+        ? `Do not include any meals containing: ${request.excludeIngredients.join(', ')}.`
+        : '';
 
-    return `Generate a detailed meal plan for a person with the following requirements:
-    - Daily calories: ${dailyCalories}
-    - Diet type: ${dietType}
-    ${ingredientsToExclude.length > 0 ? `- Excluded ingredients: ${ingredientsToExclude.join(', ')}` : ''}
-    - Maximum preparation time: ${preparationTime} minutes
-    - Dietary restrictions: ${[
-        isVegetarian && 'Vegetarian',
-        isVegan && 'Vegan',
-        isGlutenFree && 'Gluten-free',
-        isDairyFree && 'Dairy-free',
-        isKeto && 'Keto',
-        isLowCarb && 'Low-carb',
-        isHighProtein && 'High-protein',
-        isLowFat && 'Low-fat'
-    ].filter(Boolean).join(', ')}
+    return `Generate a detailed weekly meal plan for a ${request.dietType} diet with ${request.dailyCalories} calories per day. ${restrictionsText} ${excludeText} Each meal should take no more than ${request.preparationTime} minutes to prepare.
 
     IMPORTANT: Your response must be a valid JSON object that exactly matches the structure below. Do not include any markdown formatting or code blocks.
     
     Required structure:
     {
         "meal_plan": {
-            "description": "Overall meal plan description",
-            "daily_calories": ${dailyCalories},
-            "meals": {
-                "breakfast": [
-                    {
-                        "name": "Meal name",
-                        "calories": ${breakfastCalories},
-                        "protein": 25,
-                        "carbs": 45,
-                        "fat": 15,
-                        "prepTime": 15,
-                        "image": "https://images.pexels.com/photos/[photo-id]/pexels-photo-[photo-id].jpeg",
-                        "ingredients": [
-                            "Ingredient 1",
-                            "Ingredient 2"
-                        ],
-                        "instructions": "Step by step cooking instructions"
-                    }
-                ],
-                "lunch": [
-                    {
-                        "name": "Meal name",
-                        "calories": ${lunchCalories},
-                        "protein": 30,
-                        "carbs": 50,
-                        "fat": 20,
-                        "prepTime": 20,
-                        "image": "https://images.pexels.com/photos/[photo-id]/pexels-photo-[photo-id].jpeg",
-                        "ingredients": [
-                            "Ingredient 1",
-                            "Ingredient 2"
-                        ],
-                        "instructions": "Step by step cooking instructions"
-                    }
-                ],
-                "dinner": [
-                    {
-                        "name": "Meal name",
-                        "calories": ${dinnerCalories},
-                        "protein": 35,
-                        "carbs": 55,
-                        "fat": 25,
-                        "prepTime": 25,
-                        "image": "https://images.pexels.com/photos/[photo-id]/pexels-photo-[photo-id].jpeg",
-                        "ingredients": [
-                            "Ingredient 1",
-                            "Ingredient 2"
-                        ],
-                        "instructions": "Step by step cooking instructions"
-                    }
-                ],
-                "snacks": [
-                    {
-                        "name": "Meal name",
-                        "calories": ${snacksCalories},
-                        "protein": 10,
-                        "carbs": 20,
-                        "fat": 8,
-                        "prepTime": 5,
-                        "image": "https://images.pexels.com/photos/[photo-id]/pexels-photo-[photo-id].jpeg",
-                        "ingredients": [
-                            "Ingredient 1",
-                            "Ingredient 2"
-                        ],
-                        "instructions": "Step by step cooking instructions"
-                    }
-                ]
+            "description": "Overall weekly meal plan description",
+            "daily_calories": ${request.dailyCalories},
+            "weekly_plan": {
+                "monday": {
+                    "breakfast": [
+                        {
+                            "name": "Meal name",
+                            "calories": number,
+                            "protein": number,
+                            "carbs": number,
+                            "fat": number,
+                            "prepTime": number,
+                            "image": "https://images.pexels.com/photos/[photo-id]/pexels-photo-[photo-id].jpeg",
+                            "ingredients": ["ingredient 1", "ingredient 2", ...],
+                            "instructions": "Detailed cooking instructions"
+                        }
+                    ],
+                    "lunch": [...],
+                    "dinner": [...],
+                    "snacks": [...]
+                },
+                "tuesday": {
+                    "breakfast": [...],
+                    "lunch": [...],
+                    "dinner": [...],
+                    "snacks": [...]
+                },
+                "wednesday": {
+                    "breakfast": [...],
+                    "lunch": [...],
+                    "dinner": [...],
+                    "snacks": [...]
+                },
+                "thursday": {
+                    "breakfast": [...],
+                    "lunch": [...],
+                    "dinner": [...],
+                    "snacks": [...]
+                },
+                "friday": {
+                    "breakfast": [...],
+                    "lunch": [...],
+                    "dinner": [...],
+                    "snacks": [...]
+                },
+                "saturday": {
+                    "breakfast": [...],
+                    "lunch": [...],
+                    "dinner": [...],
+                    "snacks": [...]
+                },
+                "sunday": {
+                    "breakfast": [...],
+                    "lunch": [...],
+                    "dinner": [...],
+                    "snacks": [...]
+                }
             }
         }
     }
 
     Requirements:
-    1. The response must be a valid JSON object
-    2. All fields must be present and match the structure above
-    3. The daily_calories field must be exactly ${dailyCalories} (a number)
-    4. Each meal must have all required fields
-    5. All fields should be strings except for calories, protein, carbs, fat, and prepTime which should be numbers
-    6. The ingredients field must be an array of strings
-    7. The instructions field must be a string with step-by-step cooking instructions
-    8. The image field must be a valid Pexels image URL in the format: https://images.pexels.com/photos/[photo-id]/pexels-photo-[photo-id].jpeg
-    9. The prepTime should not exceed ${preparationTime} minutes
-    10. The calories field should be the total calories for that meal
-    11. The protein, carbs, and fat fields should be in grams
-    12. The name field should be a descriptive name for the meal
-    13. The description field should be a summary of the meal plan
-    14. The meals object must contain all four meal types (breakfast, lunch, dinner, snacks)
-    15. Each meal type must be an array of at least one meal
-    16. The total calories of all meals should approximately match the daily_calories target (${dailyCalories})
-    17. The meals should respect the dietary restrictions specified
-    18. The prepTime should not exceed the maximum preparation time specified (${preparationTime} minutes)
-    19. ${ingredientsToExclude.length > 0 ? `The ingredients should not include any of these excluded ingredients: ${ingredientsToExclude.join(', ')}` : 'No ingredients are excluded'}
-    20. The meals should be appropriate for the specified diet type
-    21. IMPORTANT: The daily_calories field must be exactly ${dailyCalories} (a number)
-    22. IMPORTANT: The calories for each meal type should be approximately:
-       - Breakfast: ${breakfastCalories} calories
-       - Lunch: ${lunchCalories} calories
-       - Dinner: ${dinnerCalories} calories
-       - Snacks: ${snacksCalories} calories
-    23. IMPORTANT: All image URLs must be from Pexels and follow the format: https://images.pexels.com/photos/[photo-id]/pexels-photo-[photo-id].jpeg`;
-}
+    1. The response must be valid JSON without any markdown formatting
+    2. Each day must have all four meal types (breakfast, lunch, dinner, snacks)
+    3. Each meal type must be an array with at least one meal
+    4. The total calories of all meals for each day should approximately match the daily calories target
+    5. Each meal must have all required fields (name, calories, protein, carbs, fat, prepTime, image, ingredients, instructions)
+    6. All numeric fields (calories, protein, carbs, fat, prepTime) must be numbers
+    7. The ingredients field must be an array of strings
+    8. The image field must be a valid Pexels image URL that closely matches the meal:
+       - For breakfast meals: Use images of breakfast foods, eggs, oatmeal, toast, etc.
+       - For lunch meals: Use images of salads, sandwiches, wraps, etc.
+       - For dinner meals: Use images of main dishes, protein with sides, etc.
+       - For snacks: Use images of healthy snacks, fruits, nuts, etc.
+       - The image should visually represent the actual meal being described
+       - Use high-quality, well-lit food photography
+       - The image should be appetizing and professional
+    9. The instructions field must be a detailed string
+    10. The prepTime must not exceed ${request.preparationTime} minutes
+    11. Each meal must respect the dietary restrictions and excluded ingredients
+    12. The weekly plan must include all seven days (monday through sunday)
+    13. Each day must have different meals to provide variety throughout the week
+    14. The meals should be practical and easy to prepare
+    15. The nutritional information should be accurate and balanced
+    16. IMPORTANT: All image URLs must be from Pexels and follow the format: https://images.pexels.com/photos/[photo-id]/pexels-photo-[photo-id].jpeg
+    17. IMPORTANT: The image must be relevant to the meal being described - do not use generic food images
+    18. IMPORTANT: For each meal, search Pexels using the meal name and main ingredients to find the most relevant image
+    19. IMPORTANT: The image should show the final prepared dish, not just ingredients
+    20. IMPORTANT: If the meal has specific dietary requirements (vegetarian, vegan, etc.), the image should reflect those requirements`;
+};
 
 export default mealPrompt; 
