@@ -58,18 +58,24 @@ interface WorkoutPlan {
     schedule: {
         [key: string]: string;
     };
-    exercises: Array<{
-        name: string;
-        sets: number;
-        reps: string;
-        description: string;
-    }>;
+    daily_workouts: {
+        [key: string]: {
+            exercises: Array<{
+                name: string;
+                sets: number;
+                reps: string;
+                description: string;
+                gif_url: string;
+            }>;
+        };
+    };
     warm_up: {
         description: string;
         exercises: Array<{
             name: string;
             duration: string;
             description: string;
+            gif_url: string;
         }>;
     };
     cool_down: {
@@ -78,6 +84,7 @@ interface WorkoutPlan {
             name: string;
             duration: string;
             description: string;
+            gif_url: string;
         }>;
     };
 }
@@ -121,20 +128,23 @@ const WorkoutGenerator = () => {
         daysPerweek: workoutsPerWeek
       }, { withCredentials: true });
       
-      if (response.data?.workout_plan?.data?.workout_plan) {
-        setWorkoutPlan(response.data.workout_plan.data.workout_plan);
+      console.log('Response from server:', response.data);
+      
+      if (response.data?.success && response.data?.data?.workout_plan) {
+        setWorkoutPlan(response.data.data.workout_plan);
         toast({
           title: "Success!",
           description: response.data.message || "Your workout plan has been generated.",
         });
       } else {
-        throw new Error("Invalid response format");
+        console.error('Invalid response structure:', response.data);
+        throw new Error(response.data?.message || "Invalid response format");
       }
     } catch (error) {
       console.error("Error occurred while generating a workout:", error);
       toast({
         title: "Error",
-        description: "Failed to generate workout plan. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate workout plan. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -296,7 +306,7 @@ const WorkoutGenerator = () => {
 
         {/* Generated Workout Plans */}
         <div className="md:col-span-2">
-          {!workouts ? (
+          {!workoutPlan ? (
             <div className="flex items-center justify-center h-full min-h-[400px] rounded-lg border border-dashed">
               <div className="flex flex-col items-center text-center p-8">
                 <Dumbbell className="w-16 h-16 mb-4 text-muted-foreground/60" />
@@ -307,142 +317,9 @@ const WorkoutGenerator = () => {
               </div>
             </div>
           ) : (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Your Personalized Workout Plan</CardTitle>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="w-4 h-4" /> Save Plan
-                  </Button>
-                </div>
-                <CardDescription>
-                  {workoutsPerWeek}x per week, {workoutDuration} min, {fitnessGoal} focus for {fitnessLevel} level
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Tabs value={activeWorkoutType} onValueChange={setActiveWorkoutType}>
-                  <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-                    <TabsTrigger
-                      value="upper"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                    >
-                      Upper Body
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="lower"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                    >
-                      Lower Body
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="full"
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                    >
-                      Full Body
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  {Object.keys(workouts).map((type) => (
-                    <TabsContent key={type} value={type} className="pt-4">
-                      {/* Workout Summary */}
-                      <div className="flex items-center justify-between mb-6 p-3 bg-muted/50 rounded-lg">
-                        <div className="flex gap-6">
-                          <div className="flex items-center gap-2">
-                            <Timer className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">{workoutDuration} min</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Flame className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">~320 calories</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Heart className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm">Moderate intensity</span>
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          Schedule <Calendar className="w-4 h-4 ml-1" />
-                        </Button>
-                      </div>
-                      
-                      {/* Exercise List */}
-                      <div className="space-y-4">
-                        {workouts[type].map((exercise: any, index: number) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: index * 0.1 }}
-                          >
-                            <Card>
-                              <div className="flex flex-col sm:flex-row">
-                                <div className="relative h-48 sm:h-auto sm:w-1/3 overflow-hidden rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none">
-                                  <img
-                                    src={exercise.image}
-                                    alt={exercise.name}
-                                    className="object-cover w-full h-full"
-                                  />
-                                  <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm text-foreground px-2 py-1 rounded text-xs font-medium">
-                                    {exercise.difficulty}
-                                  </div>
-                                </div>
-                                <div className="p-4 sm:w-2/3">
-                                  <div className="flex justify-between items-start mb-2">
-                                    <h3 className="text-lg font-semibold">{exercise.name}</h3>
-                                    <div className="flex items-center text-sm text-muted-foreground">
-                                      <div className="px-2 py-1 rounded-full bg-primary/10 text-xs">
-                                        {exercise.sets} sets × {exercise.reps}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <p className="text-sm text-muted-foreground mb-3">{exercise.description}</p>
-                                  
-                                  <div className="flex flex-wrap gap-1 mb-3">
-                                    {exercise.muscles.map((muscle: string, i: number) => (
-                                      <span key={i} className="px-2 py-0.5 bg-muted text-xs rounded-full">
-                                        {muscle}
-                                      </span>
-                                    ))}
-                                  </div>
-                                  
-                                  <div className="flex justify-between items-center">
-                                    <div className="text-sm text-muted-foreground">
-                                      <span className="font-medium">Rest:</span> {exercise.rest} sec
-                                    </div>
-                                    <div className="flex gap-2">
-                                      <Button variant="outline" size="sm" className="h-8 text-xs">
-                                        View Demo
-                                      </Button>
-                                      <Button variant="ghost" size="sm" className="h-8 text-xs">
-                                        Replace
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </Card>
-                          </motion.div>
-                        ))}
-                      </div>
-                      
-                      {/* Start Workout Button */}
-                      <div className="flex justify-center mt-8">
-                        <Button className="gap-2">
-                          Start Workout <ArrowRight className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              </CardContent>
-            </Card>
+            <WorkoutPlanDisplay plan={workoutPlan} />
           )}
         </div>
-      </div>
-
-      <div className="mt-8">
-        {workoutPlan && <WorkoutPlanDisplay plan={workoutPlan} />}
       </div>
     </div>
   );

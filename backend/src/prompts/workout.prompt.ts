@@ -15,21 +15,93 @@ export const workoutPrompt = ({fitnessLevel, fitnessGoal, duration, daysPerweek}
                 "saturday": "Workout type",
                 "sunday": "Workout type"
             },
-            "exercises": [
-                {
-                    "name": "Exercise name",
-                    "sets": number,
-                    "reps": "number or AMRAP",
-                    "description": "Detailed exercise description"
+            "daily_workouts": {
+                "monday": {
+                    "exercises": [
+                        {
+                            "name": "Exercise name",
+                            "sets": number,
+                            "reps": "number or AMRAP",
+                            "description": "Detailed exercise description",
+                            "gif_url": "URL to exercise demonstration GIF"
+                        }
+                    ]
+                },
+                "tuesday": {
+                    "exercises": [
+                        {
+                            "name": "Exercise name",
+                            "sets": number,
+                            "reps": "number or AMRAP",
+                            "description": "Detailed exercise description",
+                            "gif_url": "URL to exercise demonstration GIF"
+                        }
+                    ]
+                },
+                "wednesday": {
+                    "exercises": [
+                        {
+                            "name": "Exercise name",
+                            "sets": number,
+                            "reps": "number or AMRAP",
+                            "description": "Detailed exercise description",
+                            "gif_url": "URL to exercise demonstration GIF"
+                        }
+                    ]
+                },
+                "thursday": {
+                    "exercises": [
+                        {
+                            "name": "Exercise name",
+                            "sets": number,
+                            "reps": "number or AMRAP",
+                            "description": "Detailed exercise description",
+                            "gif_url": "URL to exercise demonstration GIF"
+                        }
+                    ]
+                },
+                "friday": {
+                    "exercises": [
+                        {
+                            "name": "Exercise name",
+                            "sets": number,
+                            "reps": "number or AMRAP",
+                            "description": "Detailed exercise description",
+                            "gif_url": "URL to exercise demonstration GIF"
+                        }
+                    ]
+                },
+                "saturday": {
+                    "exercises": [
+                        {
+                            "name": "Exercise name",
+                            "sets": number,
+                            "reps": "number or AMRAP",
+                            "description": "Detailed exercise description",
+                            "gif_url": "URL to exercise demonstration GIF"
+                        }
+                    ]
+                },
+                "sunday": {
+                    "exercises": [
+                        {
+                            "name": "Exercise name",
+                            "sets": number,
+                            "reps": "number or AMRAP",
+                            "description": "Detailed exercise description",
+                            "gif_url": "URL to exercise demonstration GIF"
+                        }
+                    ]
                 }
-            ],
+            },
             "warm_up": {
                 "description": "Warm-up instructions",
                 "exercises": [
                     {
                         "name": "Warm-up exercise name",
                         "duration": "Duration in seconds or minutes",
-                        "description": "Warm-up exercise description"
+                        "description": "Warm-up exercise description",
+                        "gif_url": "URL to warm-up exercise demonstration GIF"
                     }
                 ]
             },
@@ -39,14 +111,15 @@ export const workoutPrompt = ({fitnessLevel, fitnessGoal, duration, daysPerweek}
                     {
                         "name": "Cool-down exercise name",
                         "duration": "Duration in seconds or minutes",
-                        "description": "Cool-down exercise description"
+                        "description": "Cool-down exercise description",
+                        "gif_url": "URL to cool-down exercise demonstration GIF"
                     }
                 ]
             }
         }
     }
     
-    Ensure the response is valid JSON and follows this exact structure. Include 4-6 main exercises, 3-4 warm-up exercises, and 2-3 cool-down exercises.`;
+    Ensure the response is valid JSON and follows this exact structure. For each day, include 4-6 main exercises, and for the entire plan include 3-4 warm-up exercises and 2-3 cool-down exercises. Make sure to provide appropriate GIF URLs for each exercise that demonstrate the proper form and movement.`;
 }
 
 export default workoutPrompt;

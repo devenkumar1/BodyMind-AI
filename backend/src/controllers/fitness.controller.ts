@@ -20,18 +20,29 @@ export const generateWorkoutPlan = async (req: Request, res: Response) => {
         }
 
         // Generate the workout plan
-        const workoutPlan = await workoutPlanGenerator({
+        const result = await workoutPlanGenerator({
             fitnessLevel,
             fitnessGoal,
             duration,
             daysPerweek
         });
 
+        // Check if the generation was successful
+        if (!result.success) {
+            return res.status(500).json({
+                success: false,
+                message: result.message || "Failed to generate workout plan",
+                error: result.error
+            });
+        }
+
         // Return the formatted response
         return res.status(200).json({
             success: true,
             message: "Your workout plan is ready",
-            workout_plan: workoutPlan
+            data: {
+                workout_plan: result.data?.workout_plan
+            }
         });
     } catch (error) {
         console.error('Error generating workout plan:', error);

@@ -8,18 +8,24 @@ interface WorkoutPlan {
         schedule: {
             [key: string]: string;
         };
-        exercises: Array<{
-            name: string;
-            sets: number;
-            reps: string;
-            description: string;
-        }>;
+        daily_workouts: {
+            [key: string]: {
+                exercises: Array<{
+                    name: string;
+                    sets: number;
+                    reps: string;
+                    description: string;
+                    gif_url: string;
+                }>;
+            };
+        };
         warm_up: {
             description: string;
             exercises: Array<{
                 name: string;
                 duration: string;
                 description: string;
+                gif_url: string;
             }>;
         };
         cool_down: {
@@ -28,6 +34,7 @@ interface WorkoutPlan {
                 name: string;
                 duration: string;
                 description: string;
+                gif_url: string;
             }>;
         };
     };
@@ -40,18 +47,24 @@ export async function gemini(prompt: string): Promise<{
         workout_plan: {
             description: string;
             schedule: { [key: string]: string };
-            exercises: Array<{
-                name: string;
-                sets: number;
-                reps: string;
-                description: string;
-            }>;
+            daily_workouts: {
+                [key: string]: {
+                    exercises: Array<{
+                        name: string;
+                        sets: number;
+                        reps: string;
+                        description: string;
+                        gif_url: string;
+                    }>;
+                };
+            };
             warm_up: {
                 description: string;
                 exercises: Array<{
                     name: string;
                     duration: string;
                     description: string;
+                    gif_url: string;
                 }>;
             };
             cool_down: {
@@ -60,6 +73,7 @@ export async function gemini(prompt: string): Promise<{
                     name: string;
                     duration: string;
                     description: string;
+                    gif_url: string;
                 }>;
             };
         };
@@ -94,10 +108,47 @@ export async function gemini(prompt: string): Promise<{
             }
             
             // Ensure all required fields are present
-            const requiredFields = ['description', 'schedule', 'exercises', 'warm_up', 'cool_down'] as const;
+            const requiredFields = ['description', 'schedule', 'daily_workouts', 'warm_up', 'cool_down'] as const;
             for (const field of requiredFields) {
                 if (!(field in parsedResponse.workout_plan)) {
                     throw new Error(`Invalid response structure: missing ${field}`);
+                }
+            }
+
+            // Validate daily workouts structure
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            for (const day of days) {
+                if (!parsedResponse.workout_plan.daily_workouts[day]) {
+                    throw new Error(`Invalid response structure: missing exercises for ${day}`);
+                }
+                if (!Array.isArray(parsedResponse.workout_plan.daily_workouts[day].exercises)) {
+                    throw new Error(`Invalid response structure: exercises for ${day} must be an array`);
+                }
+                // Validate each exercise has required fields
+                for (const exercise of parsedResponse.workout_plan.daily_workouts[day].exercises) {
+                    if (!exercise.name || !exercise.sets || !exercise.reps || !exercise.description || !exercise.gif_url) {
+                        throw new Error(`Invalid exercise structure in ${day}: missing required fields`);
+                    }
+                }
+            }
+
+            // Validate warm-up exercises
+            if (!Array.isArray(parsedResponse.workout_plan.warm_up.exercises)) {
+                throw new Error('Invalid response structure: warm-up exercises must be an array');
+            }
+            for (const exercise of parsedResponse.workout_plan.warm_up.exercises) {
+                if (!exercise.name || !exercise.duration || !exercise.description || !exercise.gif_url) {
+                    throw new Error('Invalid warm-up exercise structure: missing required fields');
+                }
+            }
+
+            // Validate cool-down exercises
+            if (!Array.isArray(parsedResponse.workout_plan.cool_down.exercises)) {
+                throw new Error('Invalid response structure: cool-down exercises must be an array');
+            }
+            for (const exercise of parsedResponse.workout_plan.cool_down.exercises) {
+                if (!exercise.name || !exercise.duration || !exercise.description || !exercise.gif_url) {
+                    throw new Error('Invalid cool-down exercise structure: missing required fields');
                 }
             }
             
