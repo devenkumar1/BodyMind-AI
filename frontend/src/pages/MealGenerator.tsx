@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Apple, Clock, Utensils, UtensilsCrossed, Salad, ChefHat, SaveIcon, RefreshCw, Filter } from 'lucide-react';
+import axios from 'axios';
 
 const dietTypes = [
   { value: 'balanced', label: 'Balanced' },
@@ -22,7 +23,7 @@ const mealTypes = [
   { value: 'breakfast', label: 'Breakfast' },
   { value: 'lunch', label: 'Lunch' },
   { value: 'dinner', label: 'Dinner' },
-  { value: 'snack', label: 'Snack' },
+  { value: 'snacks', label: 'Snacks' },
 ];
 
 // Sample meals for demonstration
@@ -99,7 +100,7 @@ const sampleMeals = {
       instructions: 'Cook rice according to package instructions. Slice chicken and stir-fry with minced garlic and ginger. Add vegetables and continue to cook. Add sauce and sesame oil. Serve over rice.'
     }
   ],
-  snack: [
+  snacks: [
     {
       name: 'Greek Yogurt with Berries',
       calories: 180,
@@ -125,29 +126,106 @@ const sampleMeals = {
   ]
 };
 
+interface Preferences {
+  excludeIngredients: string;
+  timeConstraint: number;
+  isVegetarian: boolean;
+  isVegan: boolean;
+  isGlutenFree: boolean;
+  isDairyFree: boolean;
+  isKeto: boolean;
+  isLowCarb: boolean;
+  isHighProtein: boolean;
+  isLowFat: boolean;
+}
+
 const MealGenerator = () => {
   const [calories, setCalories] = useState(2000);
   const [dietType, setDietType] = useState('balanced');
   const [generating, setGenerating] = useState(false);
   const [meals, setMeals] = useState<any>(null);
   const [activeMealType, setActiveMealType] = useState('breakfast');
-  const [preferences, setPreferences] = useState({
+  const [preferences, setPreferences] = useState<Preferences>({
     excludeIngredients: '',
     timeConstraint: 30,
+    isVegetarian: false,
+    isVegan: false,
+    isGlutenFree: false,
+    isDairyFree: false,
+    isKeto: false,
+    isLowCarb: false,
+    isHighProtein: false,
+    isLowFat: false,
   });
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setGenerating(true);
-    
-    // Simulating API call delay
-    setTimeout(() => {
-      setMeals(sampleMeals);
+    try {
+      // Log the current state values
+      console.log('Current state values:', {
+        calories,
+        dietType,
+        timeConstraint: preferences.timeConstraint,
+        preferences
+      });
+
+      // Validate required fields before sending
+      if (!calories || !dietType || !preferences.timeConstraint) {
+        console.error('Missing required fields:', { calories, dietType, timeConstraint: preferences.timeConstraint });
+        return;
+      }
+
+      const requestData = {
+        dailyCalories: Number(calories),
+        dietType: String(dietType),
+        excludeIngredients: preferences.excludeIngredients.trim() ? preferences.excludeIngredients.split(',').map(i => i.trim()) : [],
+        preparationTime: Number(preferences.timeConstraint),
+        isVegetarian: Boolean(preferences.isVegetarian),
+        isVegan: Boolean(preferences.isVegan),
+        isGlutenFree: Boolean(preferences.isGlutenFree),
+        isDairyFree: Boolean(preferences.isDairyFree),
+        isKeto: Boolean(preferences.isKeto),
+        isLowCarb: Boolean(preferences.isLowCarb),
+        isHighProtein: Boolean(preferences.isHighProtein),
+        isLowFat: Boolean(preferences.isLowFat)
+      };
+
+      // Log the request data before sending
+      console.log('Request data being sent:', requestData);
+      console.log('dailyCalories type:', typeof requestData.dailyCalories);
+      console.log('dailyCalories value:', requestData.dailyCalories);
+
+      const response = await axios.post('/api/user/generate-meal-plan', requestData);
+
+      if (response.data.success) {
+        setMeals(response.data.data.meal_plan.meals);
+      } else {
+        console.error('Failed to generate meal plan:', response.data.error);
+      }
+    } catch (error) {
+      console.error('Error generating meal plan:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Response data:', error.response?.data);
+      }
+    } finally {
       setGenerating(false);
-    }, 1500);
+    }
   };
 
   const handleReset = () => {
     setMeals(null);
+    setPreferences({
+      excludeIngredients: '',
+      timeConstraint: 30,
+      isVegetarian: false,
+      isVegan: false,
+      isGlutenFree: false,
+      isDairyFree: false,
+      isKeto: false,
+      isLowCarb: false,
+      isHighProtein: false,
+      isLowFat: false,
+    });
   };
 
   const handleExcludeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,6 +234,13 @@ const MealGenerator = () => {
 
   const handleTimeChange = (value: number[]) => {
     setPreferences({ ...preferences, timeConstraint: value[0] });
+  };
+
+  const handleDietaryPreferenceChange = (key: keyof Preferences) => {
+    setPreferences(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
   };
 
   return (
@@ -233,6 +318,27 @@ const MealGenerator = () => {
                   onValueChange={handleTimeChange}
                 />
               </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Dietary Restrictions</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(preferences)
+                    .filter(([key]) => key.startsWith('is'))
+                    .map(([key, value]) => (
+                      <label key={key} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={value as boolean}
+                          onChange={() => handleDietaryPreferenceChange(key as keyof Preferences)}
+                          className="rounded border-gray-300"
+                        />
+                        <span className="text-sm">
+                          {key.replace('is', '').replace(/([A-Z])/g, ' $1').trim()}
+                        </span>
+                      </label>
+                    ))}
+                </div>
+              </div>
             </CardContent>
             <CardFooter>
               {!meals ? (
@@ -298,7 +404,7 @@ const MealGenerator = () => {
                   {mealTypes.map((type) => (
                     <TabsContent key={type.value} value={type.value} className="pt-4">
                       <div className="grid gap-6 sm:grid-cols-2">
-                        {meals[type.value].map((meal: any, index: number) => (
+                        {meals[type.value]?.map((meal: any, index: number) => (
                           <motion.div
                             key={index}
                             initial={{ opacity: 0, y: 10 }}

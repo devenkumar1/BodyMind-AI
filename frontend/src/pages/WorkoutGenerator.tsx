@@ -317,7 +317,7 @@ const WorkoutGenerator = () => {
               </div>
             </div>
           ) : (
-            <WorkoutPlanDisplay plan={workoutPlan} />
+            <WorkoutPlanDisplay plan={workoutPlan} isLoading={loading} />
           )}
         </div>
       </div>

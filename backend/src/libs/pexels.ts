@@ -25,7 +25,7 @@ export async function getExerciseVideo(exerciseName: string): Promise<string> {
 
         if (response.data.videos && response.data.videos.length > 0) {
             // Get the video file with the best quality that's not too large
-            const video = response.data.videos[0];
+            const video = response.data.videos[1];
             const videoFiles = video.video_files;
             
             // Sort by quality (width) and find the best one under 720p
