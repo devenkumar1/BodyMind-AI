@@ -19,7 +19,8 @@ import {
   Menu,
   X,
   Flame,
-  Heart
+  Heart,
+  Brain
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from "@/components/ui/sheet"
@@ -51,6 +52,7 @@ export function Navbar() {
     { path: '/training', label: 'Training', icon: <Dumbbell className="w-4 h-4 mr-2" /> },
     { path: '/meal-generator', label: 'Meal Plans', icon: <Flame className="w-4 h-4 mr-2" /> },
     { path: '/workout-generator', label: 'Workout Builder', icon: <Activity className="w-4 h-4 mr-2" /> },
+    {path:'ai-assistant', label:'AI Assistant', icon:<Brain className="w-4 h-4 mr-2" />}
   ];
 
   const navItems = [

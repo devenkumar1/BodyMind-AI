@@ -196,7 +196,8 @@ export async function generateMealPlan(request: MealPlanRequest): Promise<{
                         };
                     }
 
-                    if (meal.prepTime > request.preparationTime) {
+                    // Allow prepTime to be 0 for pre-packaged items
+                    if (meal.prepTime > request.preparationTime && meal.prepTime !== 0) {
                         console.error(`Prep time exceeds maximum in ${day} ${mealType} meal ${index + 1}:`, meal.prepTime);
                         return {
                             success: false,
@@ -229,6 +230,16 @@ export async function generateMealPlan(request: MealPlanRequest): Promise<{
                             success: false,
                             message: `Invalid meal structure: image must be a string in ${day} ${mealType} meal ${index + 1}`,
                             error: `Invalid image type in ${day} ${mealType} meal ${index + 1}`
+                        };
+                    }
+
+                    // Validate Pexels image URL format
+                    if (!meal.image.match(/^https:\/\/images\.pexels\.com\/photos\/\d+\/pexels-photo-\d+\.jpeg$/)) {
+                        console.error(`Invalid Pexels image URL format in ${day} ${mealType} meal ${index + 1}:`, meal.image);
+                        return {
+                            success: false,
+                            message: `Invalid meal structure: image must be a valid Pexels URL in ${day} ${mealType} meal ${index + 1}`,
+                            error: `Invalid Pexels image URL format in ${day} ${mealType} meal ${index + 1}`
                         };
                     }
 
