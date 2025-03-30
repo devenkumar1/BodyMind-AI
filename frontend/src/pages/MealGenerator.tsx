@@ -26,6 +26,16 @@ const mealTypes = [
   { value: 'snacks', label: 'Snacks' },
 ];
 
+const weekDays = [
+  { value: 'monday', label: 'Monday' },
+  { value: 'tuesday', label: 'Tuesday' },
+  { value: 'wednesday', label: 'Wednesday' },
+  { value: 'thursday', label: 'Thursday' },
+  { value: 'friday', label: 'Friday' },
+  { value: 'saturday', label: 'Saturday' },
+  { value: 'sunday', label: 'Sunday' },
+];
+
 // Sample meals for demonstration
 const sampleMeals = {
   breakfast: [
@@ -144,6 +154,7 @@ const MealGenerator = () => {
   const [dietType, setDietType] = useState('balanced');
   const [generating, setGenerating] = useState(false);
   const [meals, setMeals] = useState<any>(null);
+  const [activeDay, setActiveDay] = useState('monday');
   const [activeMealType, setActiveMealType] = useState('breakfast');
   const [preferences, setPreferences] = useState<Preferences>({
     excludeIngredients: '',
@@ -192,13 +203,12 @@ const MealGenerator = () => {
 
       // Log the request data before sending
       console.log('Request data being sent:', requestData);
-      console.log('dailyCalories type:', typeof requestData.dailyCalories);
-      console.log('dailyCalories value:', requestData.dailyCalories);
 
       const response = await axios.post('/api/user/generate-meal-plan', requestData);
 
       if (response.data.success) {
-        setMeals(response.data.data.meal_plan.meals);
+        // Store the meal plan data
+        setMeals(response.data.data.meal_plan);
       } else {
         console.error('Failed to generate meal plan:', response.data.error);
       }
@@ -378,93 +388,111 @@ const MealGenerator = () => {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Your Personalized Meal Plan</CardTitle>
+                  <CardTitle>Your Weekly Meal Plan</CardTitle>
                   <Button variant="outline" size="sm" className="gap-2">
                     <SaveIcon className="w-4 h-4" /> Save Plan
                   </Button>
                 </div>
                 <CardDescription>
-                  Based on your {dietType} diet preference with {calories} daily calories
+                  {meals.description}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <Tabs value={activeMealType} onValueChange={setActiveMealType}>
+                <Tabs value={activeDay} onValueChange={setActiveDay}>
                   <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-                    {mealTypes.map((type) => (
+                    {weekDays.map((day) => (
                       <TabsTrigger
-                        key={type.value}
-                        value={type.value}
+                        key={day.value}
+                        value={day.value}
                         className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
                       >
-                        {type.label}
+                        {day.label}
                       </TabsTrigger>
                     ))}
                   </TabsList>
                   
-                  {mealTypes.map((type) => (
-                    <TabsContent key={type.value} value={type.value} className="pt-4">
-                      <div className="grid gap-6 sm:grid-cols-2">
-                        {meals[type.value]?.map((meal: any, index: number) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: index * 0.1 }}
-                          >
-                            <Card className="overflow-hidden">
-                              <div className="relative h-48">
-                                <img
-                                  src={meal.image}
-                                  alt={meal.name}
-                                  className="object-cover w-full h-full"
-                                />
-                              </div>
-                              <CardHeader className="pb-2">
-                                <div className="flex justify-between items-start">
-                                  <CardTitle className="text-lg">{meal.name}</CardTitle>
-                                  <div className="flex items-center text-sm text-muted-foreground">
-                                    <Clock className="w-4 h-4 mr-1" /> {meal.prepTime} min
-                                  </div>
-                                </div>
-                                <div className="flex gap-3 text-sm">
-                                  <div className="flex flex-col items-center">
-                                    <span className="font-bold">{meal.calories}</span>
-                                    <span className="text-xs text-muted-foreground">cal</span>
-                                  </div>
-                                  <div className="flex flex-col items-center">
-                                    <span className="font-bold">{meal.protein}g</span>
-                                    <span className="text-xs text-muted-foreground">protein</span>
-                                  </div>
-                                  <div className="flex flex-col items-center">
-                                    <span className="font-bold">{meal.carbs}g</span>
-                                    <span className="text-xs text-muted-foreground">carbs</span>
-                                  </div>
-                                  <div className="flex flex-col items-center">
-                                    <span className="font-bold">{meal.fat}g</span>
-                                    <span className="text-xs text-muted-foreground">fat</span>
-                                  </div>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="pt-0">
-                                <div className="space-y-3">
-                                  <div>
-                                    <h4 className="text-sm font-medium mb-1">Ingredients:</h4>
-                                    <ul className="text-sm text-muted-foreground">
-                                      {meal.ingredients.map((ingredient: string, idx: number) => (
-                                        <li key={idx} className="list-disc ml-4">{ingredient}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                  <div>
-                                    <h4 className="text-sm font-medium mb-1">Instructions:</h4>
-                                    <p className="text-sm text-muted-foreground">{meal.instructions}</p>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </motion.div>
+                  {weekDays.map((day) => (
+                    <TabsContent key={day.value} value={day.value} className="pt-4">
+                      <Tabs value={activeMealType} onValueChange={setActiveMealType}>
+                        <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
+                          {mealTypes.map((type) => (
+                            <TabsTrigger
+                              key={type.value}
+                              value={type.value}
+                              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                            >
+                              {type.label}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                        
+                        {mealTypes.map((type) => (
+                          <TabsContent key={type.value} value={type.value} className="pt-4">
+                            <div className="grid gap-6 sm:grid-cols-2">
+                              {meals.weekly_plan[day.value]?.[type.value]?.map((meal: any, index: number) => (
+                                <motion.div
+                                  key={index}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                                >
+                                  <Card className="overflow-hidden">
+                                    <div className="relative h-48">
+                                      <img
+                                        src={meal.image}
+                                        alt={meal.name}
+                                        className="object-cover w-full h-full"
+                                      />
+                                    </div>
+                                    <CardHeader className="pb-2">
+                                      <div className="flex justify-between items-start">
+                                        <CardTitle className="text-lg">{meal.name}</CardTitle>
+                                        <div className="flex items-center text-sm text-muted-foreground">
+                                          <Clock className="w-4 h-4 mr-1" /> {meal.prepTime} min
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-3 text-sm">
+                                        <div className="flex flex-col items-center">
+                                          <span className="font-bold">{meal.calories}</span>
+                                          <span className="text-xs text-muted-foreground">cal</span>
+                                        </div>
+                                        <div className="flex flex-col items-center">
+                                          <span className="font-bold">{meal.protein}g</span>
+                                          <span className="text-xs text-muted-foreground">protein</span>
+                                        </div>
+                                        <div className="flex flex-col items-center">
+                                          <span className="font-bold">{meal.carbs}g</span>
+                                          <span className="text-xs text-muted-foreground">carbs</span>
+                                        </div>
+                                        <div className="flex flex-col items-center">
+                                          <span className="font-bold">{meal.fat}g</span>
+                                          <span className="text-xs text-muted-foreground">fat</span>
+                                        </div>
+                                      </div>
+                                    </CardHeader>
+                                    <CardContent className="pt-0">
+                                      <div className="space-y-3">
+                                        <div>
+                                          <h4 className="text-sm font-medium mb-1">Ingredients:</h4>
+                                          <ul className="text-sm text-muted-foreground">
+                                            {meal.ingredients.map((ingredient: string, idx: number) => (
+                                              <li key={idx} className="list-disc ml-4">{ingredient}</li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                        <div>
+                                          <h4 className="text-sm font-medium mb-1">Instructions:</h4>
+                                          <p className="text-sm text-muted-foreground">{meal.instructions}</p>
+                                        </div>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </TabsContent>
                         ))}
-                      </div>
+                      </Tabs>
                     </TabsContent>
                   ))}
                 </Tabs>
