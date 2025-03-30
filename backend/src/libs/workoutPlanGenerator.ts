@@ -1,6 +1,6 @@
 import workoutPrompt from "../prompts/workout.prompt";
 import gemini from "./gemini";
-import getExerciseImage from "./pexels";
+import getExerciseVideo from "./pexels";
 
 export interface workAttt {
     fitnessLevel: string;
@@ -32,24 +32,24 @@ export const workoutPlanGenerator = async ({fitnessLevel, fitnessGoal, duration,
             };
         }
 
-        // Replace GIF URLs with Pexels images for all exercises
+        // Replace GIF URLs with Pexels videos for all exercises
         const workoutPlan = result.data.workout_plan;
         
         // Process daily workouts
         for (const day of Object.keys(workoutPlan.daily_workouts)) {
             for (const exercise of workoutPlan.daily_workouts[day].exercises) {
-                exercise.gif_url = await getExerciseImage(exercise.name);
+                exercise.gif_url = await getExerciseVideo(exercise.name);
             }
         }
 
         // Process warm-up exercises
         for (const exercise of workoutPlan.warm_up.exercises) {
-            exercise.gif_url = await getExerciseImage(exercise.name);
+            exercise.gif_url = await getExerciseVideo(exercise.name);
         }
 
         // Process cool-down exercises
         for (const exercise of workoutPlan.cool_down.exercises) {
-            exercise.gif_url = await getExerciseImage(exercise.name);
+            exercise.gif_url = await getExerciseVideo(exercise.name);
         }
 
         return {

@@ -130,7 +130,9 @@ export const workoutPrompt = ({fitnessLevel, fitnessGoal, duration, daysPerweek}
     5. Warm-up must have 3-4 exercises
     6. Cool-down must have 2-3 exercises
     7. All fields must be strings except for "sets" which must be a number
-    8. Do not include any comments or additional text outside the JSON structure`;
+    8. Do not include any comments or additional text outside the JSON structure
+    9. Each exercise object must be a complete object with all required fields
+    10. The exercises array must be a proper array of objects, not a string or other type`;
 }
 
 export default workoutPrompt;

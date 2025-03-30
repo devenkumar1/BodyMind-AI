@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, Dumbbell, Timer, Activity } from "lucide-react";
+import { Calendar, Dumbbell, Timer, Activity, Play, Pause } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface Exercise {
     name: string;
@@ -48,6 +48,18 @@ interface WorkoutPlanDisplayProps {
 
 export function WorkoutPlanDisplay({ plan }: WorkoutPlanDisplayProps) {
     const [activeDay, setActiveDay] = useState('monday');
+    const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
+
+    const toggleVideo = (videoId: string) => {
+        const video = videoRefs.current[videoId];
+        if (video) {
+            if (video.paused) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        }
+    };
 
     if (!plan) {
         return null;
@@ -115,26 +127,39 @@ export function WorkoutPlanDisplay({ plan }: WorkoutPlanDisplayProps) {
                         {Object.entries(plan.daily_workouts).map(([day, workout]) => (
                             <TabsContent key={day} value={day} className="pt-4">
                                 <div className="grid gap-4">
-                                    {workout.exercises.map((exercise, index) => (
-                                        <div key={index} className="p-4 rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm">
-                                            <div className="flex flex-col md:flex-row gap-4">
-                                                <div className="md:w-1/3">
-                                                    <img 
-                                                        src={exercise.gif_url} 
-                                                        alt={exercise.name}
-                                                        className="w-full rounded-lg"
-                                                    />
-                                                </div>
-                                                <div className="md:w-2/3">
-                                                    <h4 className="font-semibold">{exercise.name}</h4>
-                                                    <Badge variant="secondary" className="mt-2">
-                                                        {exercise.sets} sets × {exercise.reps}
-                                                    </Badge>
-                                                    <p className="text-sm text-muted-foreground mt-2">{exercise.description}</p>
+                                    {workout.exercises.map((exercise, index) => {
+                                        const videoId = `${day}-${index}`;
+                                        return (
+                                            <div key={index} className="p-4 rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm">
+                                                <div className="flex flex-col md:flex-row gap-4">
+                                                    <div className="md:w-1/3 relative">
+                                                        <video
+                                                            ref={el => videoRefs.current[videoId] = el}
+                                                            src={exercise.gif_url}
+                                                            className="w-full rounded-lg"
+                                                            loop
+                                                            muted
+                                                            playsInline
+                                                        />
+                                                        <button
+                                                            onClick={() => toggleVideo(videoId)}
+                                                            className="absolute bottom-2 right-2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                                                            aria-label="Play or pause exercise video"
+                                                        >
+                                                            <Play className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                    <div className="md:w-2/3">
+                                                        <h4 className="font-semibold">{exercise.name}</h4>
+                                                        <Badge variant="secondary" className="mt-2">
+                                                            {exercise.sets} sets × {exercise.reps}
+                                                        </Badge>
+                                                        <p className="text-sm text-muted-foreground mt-2">{exercise.description}</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </TabsContent>
                         ))}
@@ -154,24 +179,37 @@ export function WorkoutPlanDisplay({ plan }: WorkoutPlanDisplayProps) {
                     <CardContent>
                         <p className="text-muted-foreground mb-4">{plan.warm_up.description}</p>
                         <div className="grid gap-4">
-                            {plan.warm_up.exercises.map((exercise, index) => (
-                                <div key={index} className="p-4 rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm">
-                                    <div className="flex flex-col md:flex-row gap-4">
-                                        <div className="md:w-1/3">
-                                            <img 
-                                                src={exercise.gif_url} 
-                                                alt={exercise.name}
-                                                className="w-full rounded-lg"
-                                            />
-                                        </div>
-                                        <div className="md:w-2/3">
-                                            <h4 className="font-semibold">{exercise.name}</h4>
-                                            <Badge variant="secondary" className="mt-2">{exercise.duration}</Badge>
-                                            <p className="text-sm text-muted-foreground mt-2">{exercise.description}</p>
+                            {plan.warm_up.exercises.map((exercise, index) => {
+                                const videoId = `warmup-${index}`;
+                                return (
+                                    <div key={index} className="p-4 rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm">
+                                        <div className="flex flex-col md:flex-row gap-4">
+                                            <div className="md:w-1/3 relative">
+                                                <video
+                                                    ref={el => videoRefs.current[videoId] = el}
+                                                    src={exercise.gif_url}
+                                                    className="w-full rounded-lg"
+                                                    loop
+                                                    muted
+                                                    playsInline
+                                                />
+                                                <button
+                                                    onClick={() => toggleVideo(videoId)}
+                                                    className="absolute bottom-2 right-2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                                                    aria-label="Play or pause warm-up video"
+                                                >
+                                                    <Play className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                            <div className="md:w-2/3">
+                                                <h4 className="font-semibold">{exercise.name}</h4>
+                                                <Badge variant="secondary" className="mt-2">{exercise.duration}</Badge>
+                                                <p className="text-sm text-muted-foreground mt-2">{exercise.description}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </CardContent>
                 </Card>
@@ -189,24 +227,37 @@ export function WorkoutPlanDisplay({ plan }: WorkoutPlanDisplayProps) {
                     <CardContent>
                         <p className="text-muted-foreground mb-4">{plan.cool_down.description}</p>
                         <div className="grid gap-4">
-                            {plan.cool_down.exercises.map((exercise, index) => (
-                                <div key={index} className="p-4 rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm">
-                                    <div className="flex flex-col md:flex-row gap-4">
-                                        <div className="md:w-1/3">
-                                            <img 
-                                                src={exercise.gif_url} 
-                                                alt={exercise.name}
-                                                className="w-full rounded-lg"
-                                            />
-                                        </div>
-                                        <div className="md:w-2/3">
-                                            <h4 className="font-semibold">{exercise.name}</h4>
-                                            <Badge variant="secondary" className="mt-2">{exercise.duration}</Badge>
-                                            <p className="text-sm text-muted-foreground mt-2">{exercise.description}</p>
+                            {plan.cool_down.exercises.map((exercise, index) => {
+                                const videoId = `cooldown-${index}`;
+                                return (
+                                    <div key={index} className="p-4 rounded-lg bg-white/50 dark:bg-white/10 backdrop-blur-sm">
+                                        <div className="flex flex-col md:flex-row gap-4">
+                                            <div className="md:w-1/3 relative">
+                                                <video
+                                                    ref={el => videoRefs.current[videoId] = el}
+                                                    src={exercise.gif_url}
+                                                    className="w-full rounded-lg"
+                                                    loop
+                                                    muted
+                                                    playsInline
+                                                />
+                                                <button
+                                                    onClick={() => toggleVideo(videoId)}
+                                                    className="absolute bottom-2 right-2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                                                    aria-label="Play or pause cool-down video"
+                                                >
+                                                    <Play className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                            <div className="md:w-2/3">
+                                                <h4 className="font-semibold">{exercise.name}</h4>
+                                                <Badge variant="secondary" className="mt-2">{exercise.duration}</Badge>
+                                                <p className="text-sm text-muted-foreground mt-2">{exercise.description}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </CardContent>
                 </Card>
