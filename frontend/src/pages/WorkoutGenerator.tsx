@@ -23,7 +23,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import axios from 'axios';
-import { Input } from "@/components/ui/input";
+import Input from "@/components/ui/Input";
 import { WorkoutPlanDisplay } from "@/components/WorkoutPlanDisplay";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -114,57 +114,39 @@ const WorkoutGenerator = () => {
   const handleGenerate = async() => {
     setGenerating(true);
     try {
-      const response= await axios.post('/generate-workout', { fitnessLevel, fitnessGoal, workoutDuration, workoutsPerWeek });
-      console.log(response.data);
+      const response = await axios.post('http://localhost:5000/api/user/generate-workout', {
+        fitnessLevel,
+        fitnessGoal,
+        duration: workoutDuration,
+        daysPerweek: workoutsPerWeek
+      }, { withCredentials: true });
+      
+      if (response.data?.workout_plan?.data?.workout_plan) {
+        setWorkoutPlan(response.data.workout_plan.data.workout_plan);
+        toast({
+          title: "Success!",
+          description: response.data.message || "Your workout plan has been generated.",
+        });
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (error) {
-      console.log("error occured while generating a workout",error);
+      console.error("Error occurred while generating a workout:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate workout plan. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setGenerating(false);
     }
-
   };
   
   const handleReset = () => {
     setWorkouts(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const response = await fetch("http://localhost:5000/api/fitness/workout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to generate workout plan");
-      }
-
-      if (data.success && data.data?.workout_plan) {
-        setWorkoutPlan(data.data.workout_plan);
-        toast({
-          title: "Success!",
-          description: "Your workout plan has been generated.",
-        });
-      } else {
-        throw new Error(data.message || "Invalid response format");
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate workout plan",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+ 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -460,7 +442,7 @@ const WorkoutGenerator = () => {
       </div>
 
       <div className="mt-8">
-        <WorkoutPlanDisplay plan={workoutPlan} />
+        {workoutPlan && <WorkoutPlanDisplay plan={workoutPlan} />}
       </div>
     </div>
   );

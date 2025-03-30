@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth';
 import './config/passport';
-import userRoutes from './routes/user.routes.ts'
+import userRoutes from './routes/user.routes';
 
 // Load environment variables
 dotenv.config();
@@ -23,8 +23,10 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/freaky-fi
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: true, // Allow all origins
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(cookieParser());
