@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import { z } from 'zod';
-import { geminiSetup } from '../libs/gemini';
 
 // Validation schema for user update
 const updateUserSchema = z.object({
@@ -61,9 +60,3 @@ export const updateUserProfile = async (req: Request, res: Response) => {
   }
 }; 
 
-
-export const geminifunctiocall=async(req:Request,res:Response)=>{
-
-geminiSetup();
-
-}

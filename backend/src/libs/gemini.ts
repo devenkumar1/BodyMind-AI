@@ -380,7 +380,7 @@ type GeminiResponse = {
 
 export async function gemini(prompt: string): Promise<GeminiResponse> {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY!});
         
         console.log('Sending prompt to Gemini...');
         const response = await ai.models.generateContent({

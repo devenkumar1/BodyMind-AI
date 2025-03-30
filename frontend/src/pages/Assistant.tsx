@@ -6,6 +6,7 @@ import Input from '@/components/ui/Input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Bot, User, Loader2, Dumbbell, Heart, Brain, Sparkles } from 'lucide-react';
 import axios from 'axios';
+import { useToast } from '@/components/ui/use-toast';
 
 interface Message {
   id: string;
@@ -19,6 +20,7 @@ function Assistant() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -43,7 +45,7 @@ function Assistant() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('/api/chat', {
+      const response = await axios.post('http://localhost:5000/api/user/ai-chat', {
         message: input.trim(),
       });
 
@@ -57,6 +59,11 @@ function Assistant() {
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: 'Sorry, I encountered an error. Please try again.',
@@ -93,7 +100,7 @@ function Assistant() {
         </p>
       </motion.div>
 
-      <Card className="h-[calc(100vh-12rem)] border-2 border-primary/10 shadow-lg">
+      <Card className="h-[calc(100vh-16rem)]">
         <CardContent className="p-0 h-full flex flex-col">
           <div className="p-4 border-b bg-muted/50">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -143,7 +150,7 @@ function Assistant() {
                             </div>
                           </div>
                         )}
-                        <div className="flex-1">
+                        <div>
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                           <p className="text-xs mt-2 opacity-70">
                             {message.timestamp.toLocaleTimeString()}
@@ -176,7 +183,7 @@ function Assistant() {
             </div>
           </ScrollArea>
 
-          <form onSubmit={handleSubmit} className="p-4 border-t bg-muted/50">
+          <form onSubmit={handleSubmit} className="p-4 border-t">
             <div className="flex gap-2">
               <Input
                 value={input}

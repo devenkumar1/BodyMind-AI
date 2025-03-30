@@ -1,6 +1,7 @@
 import { Request, Response } from "express"
 import workoutPlanGenerator from "../libs/workoutPlanGenerator";
 import { generateMealPlan as generateMealPlanService } from "../libs/mealPlanGenerator";
+import { chat } from "../libs/AIChat";
 
 export const generateWorkoutPlan = async (req: Request, res: Response) => {
     try {
@@ -139,3 +140,16 @@ export const generateMealPlan = async (req: Request, res: Response): Promise<Res
         });
     }
 };
+
+export const ChatWithAI= async(req:Request,res:Response)=>{
+    const { message } = req.body;
+
+    if(!message) return res.status(400).json({message:"Please provide a message to send"});
+    try {
+        const reply = await chat(message);
+        res.status(200).json({message: reply.reply});
+    } catch (error) {
+        console.log("error in chat controller",error);
+        res.status(500).json({message:"Something went wrong"});
+    }
+}
