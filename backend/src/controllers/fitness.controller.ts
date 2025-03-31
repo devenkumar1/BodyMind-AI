@@ -2,6 +2,8 @@ import { Request, Response } from "express"
 import workoutPlanGenerator from "../libs/workoutPlanGenerator";
 import { generateMealPlan as generateMealPlanService } from "../libs/mealPlanGenerator";
 import { chat } from "../libs/AIChat";
+import { array } from "zod";
+import { generateRecipe } from "../libs/recipeGenerator";
 
 export const generateWorkoutPlan = async (req: Request, res: Response) => {
     try {
@@ -152,4 +154,18 @@ export const ChatWithAI= async(req:Request,res:Response)=>{
         console.log("error in chat controller",error);
         res.status(500).json({message:"Something went wrong"});
     }
+}
+
+
+export const recipeGenerator=async(req:Request,res:Response)=>{
+    const {ingredients,fitnessGoal}:{ingredients:string[],fitnessGoal:string}= await req.body;
+   if(!ingredients || !fitnessGoal) return res.status(400).json({message:"all fields are mandatory"});
+   try {
+    console.log("ingredients:",ingredients,"fitnessGoal:",fitnessGoal);
+    const recipe=await generateRecipe(ingredients,fitnessGoal);
+    return res.status(201).json({message:"recipe generated successfully"});
+   } catch (error) {
+    console.log("Error in generating ai recipe route",error);
+    return res.status(500).json({message:"something went wrong in generating recipe"});
+   }
 }

@@ -14,6 +14,7 @@ import MealGenerator from './pages/MealGenerator';
 import WorkoutGenerator from './pages/WorkoutGenerator';
 import { useAuth } from './context/AuthContext';
 import Assistant from './pages/Assistant';
+import AiRecipe from './pages/AiRecipe';
 
 export default function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -43,6 +44,7 @@ export default function AppRoutes() {
             <Route path="/workout-generator" element={<WorkoutGenerator />} />
             <Route path="/meal-plan" element={<Navigate to="/meal-generator" />} />
             <Route path="/ai-assistant" element={<Assistant/>} />
+            <Route path="/ai-recipe" element={<AiRecipe/>} />
           </Route>
 
           {/* Fallback route */}

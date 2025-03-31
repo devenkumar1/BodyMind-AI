@@ -1,7 +1,7 @@
 import express from 'express';
 import {getUserProfile, updateUserProfile } from '../controllers/user.controller';
 import { protect } from '../middlewares/auth.middleware';
-import { generateWorkoutPlan, generateMealPlan, ChatWithAI } from '../controllers/fitness.controller';
+import { generateWorkoutPlan, generateMealPlan, ChatWithAI,recipeGenerator } from '../controllers/fitness.controller';
 
 const router = express.Router();
 
@@ -18,5 +18,5 @@ router.post('/generate-workout-plan', protect, generateWorkoutPlan);
 router.post('/generate-meal-plan', protect, generateMealPlan);
 
 router.post('/ai-chat',ChatWithAI);
-
+router.post('/ai-recipe',recipeGenerator);
 export default router; 
