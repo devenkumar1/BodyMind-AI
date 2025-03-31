@@ -121,7 +121,7 @@ const WorkoutGenerator = () => {
   const handleGenerate = async() => {
     setGenerating(true);
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/user/generate-workout`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/user/generate-workout-plan`, {
         fitnessLevel,
         fitnessGoal,
         duration: workoutDuration,
