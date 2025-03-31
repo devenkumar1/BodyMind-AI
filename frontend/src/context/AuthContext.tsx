@@ -73,6 +73,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       navigate('/');
     } catch (error) {
       console.error('Error logging out:', error);
+      // Even if the server request fails, still log out locally
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setIsAuthenticated(false);
+      setUser(null);
+      navigate('/');
     }
   };
 
@@ -80,26 +86,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
       
       if (!token) {
         setIsAuthenticated(false);
         setUser(null);
         delete axios.defaults.headers.common['Authorization'];
+        setIsLoading(false);
         return;
       }
 
       // Set token in axios headers
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      // First try to use stored user data to prevent flicker
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-      }
-
-      // Then verify with the server
       try {
         const response = await axios.get(`${API_URL}/status`);
         
@@ -108,20 +106,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(response.data.user);
           localStorage.setItem('user', JSON.stringify(response.data.user));
         } else {
-          // Only clear if server explicitly says not authenticated
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           delete axios.defaults.headers.common['Authorization'];
           setIsAuthenticated(false);
           setUser(null);
         }
-      } catch (serverError) {
-        console.warn('Error verifying with server, using cached credentials:', serverError);
-        // If server is down, we'll still use the stored credentials
-        // This allows offline usage with cached credentials
+      } catch (error) {
+        // If there's an error checking status, just log out the user
+        console.error('Error checking auth status:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        delete axios.defaults.headers.common['Authorization'];
+        setIsAuthenticated(false);
+        setUser(null);
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      console.error('Error in auth check:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       delete axios.defaults.headers.common['Authorization'];

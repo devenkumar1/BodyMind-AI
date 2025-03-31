@@ -106,7 +106,7 @@ const MealGenerator = () => {
       // Log the request data before sending
       console.log('Request data being sent:', requestData);
 
-      const response = await axios.post('/api/user/generate-meal-plan', requestData);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/user/generate-meal-plan`, requestData);
 
       if (response.data.success) {
         // Store the meal plan data
