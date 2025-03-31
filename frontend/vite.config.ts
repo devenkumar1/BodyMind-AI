@@ -47,6 +47,9 @@ export default defineConfig(({ mode }) => {
           ]
         },
         workbox: {
+          // Navigation preload configuration
+          navigationPreload: false, // Disable navigation preload to fix the error
+          
           // Cache strategies
           runtimeCaching: [
             {
@@ -96,7 +99,6 @@ export default defineConfig(({ mode }) => {
             }
           ],
           // Offline fallback
-          navigationPreload: true,
           navigateFallback: 'offline.html'
         }
       })
