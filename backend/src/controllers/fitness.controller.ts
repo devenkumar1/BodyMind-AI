@@ -157,15 +157,38 @@ export const ChatWithAI= async(req:Request,res:Response)=>{
 }
 
 
-export const recipeGenerator=async(req:Request,res:Response)=>{
-    const {ingredients,fitnessGoal}:{ingredients:string[],fitnessGoal:string}= await req.body;
-   if(!ingredients || !fitnessGoal) return res.status(400).json({message:"all fields are mandatory"});
-   try {
-    console.log("ingredients:",ingredients,"fitnessGoal:",fitnessGoal);
-    const recipe=await generateRecipe(ingredients,fitnessGoal);
-    return res.status(201).json({message:"recipe generated successfully"});
-   } catch (error) {
-    console.log("Error in generating ai recipe route",error);
-    return res.status(500).json({message:"something went wrong in generating recipe"});
-   }
-}
+export const recipeGenerator = async (req: Request, res: Response) => {
+    try {
+        const { ingredients, fitnessGoal } = req.body;
+
+        // Validate required fields
+        if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0 || !fitnessGoal) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields",
+                requiredFields: {
+                    ingredients: "Array of ingredients",
+                    fitnessGoal: "Fitness goal (e.g., weight loss, muscle gain)"
+                }
+            });
+        }
+
+        // Generate the recipe
+        const recipe = await generateRecipe(ingredients, fitnessGoal);
+
+        // Return the formatted response
+        return res.status(200).json({
+            success: true,
+            message: "Recipe generated successfully",
+            data: recipe
+        });
+
+    } catch (error) {
+        console.error('Error generating recipe:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to generate recipe",
+            error: error instanceof Error ? error.message : "Unknown error occurred"
+        });
+    }
+};
