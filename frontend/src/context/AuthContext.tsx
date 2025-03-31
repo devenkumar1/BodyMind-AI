@@ -24,9 +24,6 @@ const API_URL = `${import.meta.env.VITE_API_URL}/auth`;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Create a custom event for auth state changes
-export const AUTH_STATE_CHANGED_EVENT = 'auth_state_changed';
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -39,35 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
-
-    // Listen for auth state changes from other components/tabs
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'token' || event.key === 'user') {
-        checkAuthStatus();
-      }
-    };
-
-    // Listen for custom auth state change events
-    const handleAuthStateChange = () => {
-      checkAuthStatus();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChange);
-    };
   }, []);
 
   // Direct method to set auth state (useful for callbacks)
   const setAuthState = (isAuth: boolean, userData: User | null) => {
     setIsAuthenticated(isAuth);
     setUser(userData);
-    
-    // Dispatch event to notify other components
-    window.dispatchEvent(new Event(AUTH_STATE_CHANGED_EVENT));
   };
 
   const login = async (email: string, password: string) => {
@@ -148,31 +122,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Set token in axios headers
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      try {
-        const response = await axios.get(`${API_URL}/status`);
+      const response = await axios.get(`${API_URL}/status`);
+      
+      if (response.data.isAuthenticated && response.data.user) {
+        // Set auth state
+        setAuthState(true, response.data.user);
         
-        if (response.data.isAuthenticated && response.data.user) {
-          // Set auth state
-          setAuthState(true, response.data.user);
-          
-          // Update stored user data
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-          setIsLoading(false);
-          return true;
-        } else {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          delete axios.defaults.headers.common['Authorization'];
-          
-          // Set auth state
-          setAuthState(false, null);
-          
-          setIsLoading(false);
-          return false;
-        }
-      } catch (error) {
-        // If there's an error checking status, just log out the user
-        console.error('Error checking auth status:', error);
+        // Update stored user data
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        setIsLoading(false);
+        return true;
+      } else {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
@@ -184,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
     } catch (error) {
-      console.error('Error in auth check:', error);
+      console.error('Error checking auth status:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       delete axios.defaults.headers.common['Authorization'];
@@ -203,7 +163,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Don't render children until we've checked auth status
   if (isLoading) {
-    return <div className="loading">Loading...</div>;
+    return <div className="flex justify-center items-center min-h-screen">
+      <div className="text-center">
+        <h2 className="mb-2 text-2xl font-semibold">Loading...</h2>
+        <p className="text-muted-foreground">Please wait while we set up your experience.</p>
+      </div>
+    </div>;
   }
 
   return (

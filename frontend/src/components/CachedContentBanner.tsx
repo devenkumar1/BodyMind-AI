@@ -1,5 +1,3 @@
-import { isOnline } from '../lib/pwa-utils';
-
 interface CachedContentBannerProps {
   isFromCache: boolean;
   timestamp?: number;
@@ -26,9 +24,8 @@ export function CachedContentBanner({ isFromCache, timestamp, onRefresh }: Cache
         <div className="ml-3 flex-1 md:flex md:justify-between">
           <p className="text-sm text-amber-700 dark:text-amber-200">
             You're viewing cached content from {cachedTime}.
-            {!isOnline() && ' (You are currently offline.)'}
           </p>
-          {onRefresh && isOnline() && (
+          {onRefresh && (
             <p className="mt-3 text-sm md:mt-0 md:ml-6">
               <button
                 onClick={onRefresh}
@@ -42,4 +39,4 @@ export function CachedContentBanner({ isFromCache, timestamp, onRefresh }: Cache
       </div>
     </div>
   );
-} 
+}

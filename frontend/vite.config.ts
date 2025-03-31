@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.svg', 'masked-icon.svg', 'offline.html'],
+        includeAssets: ['favicon.ico', 'apple-touch-icon.svg', 'masked-icon.svg'],
         manifest: {
           name: 'BodyMind AI - AI Powered Fitness',
           short_name: 'BodyMind AI',
@@ -47,10 +47,10 @@ export default defineConfig(({ mode }) => {
           ]
         },
         workbox: {
-          // Navigation preload configuration
-          navigationPreload: false, // Disable navigation preload to fix the error
+          // Disable navigation preload
+          navigationPreload: false,
           
-          // Cache strategies
+          // Cache strategies only for static assets
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -84,25 +84,16 @@ export default defineConfig(({ mode }) => {
                   maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
                 }
               }
-            },
-            {
-              urlPattern: /^https:\/\/api\..*\.com\/.*/i,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'api-cache',
-                expiration: {
-                  maxEntries: 50,
-                  maxAgeSeconds: 60 * 60 * 24 // 24 hours
-                },
-                networkTimeoutSeconds: 10
-              }
             }
-          ],
-          // Offline fallback
-          navigateFallback: 'offline.html'
+          ]
         }
       })
     ],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
     server: {
       proxy: {
         '/api': {
@@ -111,11 +102,6 @@ export default defineConfig(({ mode }) => {
           secure: false,
         }
       }
-    },
-    resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "./src"),
-      },
     }
   }
 }) 
