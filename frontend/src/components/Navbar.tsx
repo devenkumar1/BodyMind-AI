@@ -127,7 +127,7 @@ export function Navbar() {
 
   return (
     <header className={cn(
-      "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+      "sticky top-0 z-50 w-full px-2 md:px-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
       scrolled && "shadow-sm"
     )}>
       <div className="container flex h-14 items-center justify-between">
@@ -336,7 +336,7 @@ export function Navbar() {
 
                     {/* Dashboard */}
                     {dashboardNavItems.map((item) => (
-                      <Link
+                      <Link 
                         key={item.path}
                         to={item.path}
                         className="flex items-center p-2 rounded-md hover:bg-accent"
