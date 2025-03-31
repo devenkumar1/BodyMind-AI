@@ -34,9 +34,13 @@ export default function AppRoutes() {
             isAuthenticated ? <Home /> : <LandingPage />
           } />
 
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* Public routes - redirect if already authenticated */}
+          <Route path="/login" element={
+            isAuthenticated ? <Navigate to="/home" replace /> : <Login />
+          } />
+          <Route path="/register" element={
+            isAuthenticated ? <Navigate to="/home" replace /> : <Register />
+          } />
           <Route path="/auth/callback" element={<AuthCallback />} />
           
           {/* Protected routes */}
@@ -65,4 +69,4 @@ export default function AppRoutes() {
       <Footer />
     </div>
   );
-} 
+}

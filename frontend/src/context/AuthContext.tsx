@@ -26,6 +26,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   // Add axios interceptor to include token in all requests
@@ -76,8 +77,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const checkAuthStatus = async () => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      
       if (!token) {
         setIsAuthenticated(false);
         setUser(null);
@@ -87,19 +91,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Set token in axios headers
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-      const response = await axios.get(`${API_URL}/status`);
       
-      if (response.data.isAuthenticated && response.data.user) {
+      // First try to use stored user data to prevent flicker
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
         setIsAuthenticated(true);
-        setUser(response.data.user);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-      } else {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        delete axios.defaults.headers.common['Authorization'];
-        setIsAuthenticated(false);
-        setUser(null);
+      }
+
+      // Then verify with the server
+      try {
+        const response = await axios.get(`${API_URL}/status`);
+        
+        if (response.data.isAuthenticated && response.data.user) {
+          setIsAuthenticated(true);
+          setUser(response.data.user);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+        } else {
+          // Only clear if server explicitly says not authenticated
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          delete axios.defaults.headers.common['Authorization'];
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      } catch (serverError) {
+        console.warn('Error verifying with server, using cached credentials:', serverError);
+        // If server is down, we'll still use the stored credentials
+        // This allows offline usage with cached credentials
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
@@ -108,12 +127,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       delete axios.defaults.headers.common['Authorization'];
       setIsAuthenticated(false);
       setUser(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  // Don't render children until we've checked auth status
+  if (isLoading) {
+    return <div className="loading">Loading...</div>;
+  }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout, checkAuthStatus }}>
@@ -128,4 +154,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}
