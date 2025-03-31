@@ -2,7 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from 'dotenv';
 dotenv.config();
 
-interface WorkoutPlan {
+export interface WorkoutPlan {
     workout_plan: {
         description: string;
         schedule: {
@@ -40,7 +40,7 @@ interface WorkoutPlan {
     };
 }
 
-interface MealPlan {
+export interface MealPlan {
     meal_plan: {
         description?: string;
         daily_calories?: number;
@@ -371,7 +371,7 @@ interface MealPlan {
     };
 }
 
-type GeminiResponse = {
+export type GeminiResponse = {
     success: boolean;
     message: string;
     data?: WorkoutPlan | MealPlan;

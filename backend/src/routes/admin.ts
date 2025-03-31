@@ -87,7 +87,10 @@ router.patch('/trainers/:trainerId', auth, checkRole(['ADMIN']), async (req, res
     if (specialization) trainer.specialization = specialization;
     if (hourlyRate) trainer.hourlyRate = hourlyRate;
     if (bio) trainer.bio = bio;
-    if (typeof isVerified === 'boolean') trainer.isVerified = isVerified;
+    if (typeof isVerified === 'boolean') {
+      // Add isVerified as a custom property if needed
+      (trainer as any).isVerified = isVerified;
+    }
 
     await trainer.save();
 
@@ -113,7 +116,7 @@ router.delete('/trainers/:trainerId', auth, checkRole(['ADMIN']), async (req, re
       return res.status(404).json({ error: 'Trainer not found' });
     }
 
-    await trainer.remove();
+    await User.deleteOne({ _id: trainer._id });
     res.json({ message: 'Trainer deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Server error' });

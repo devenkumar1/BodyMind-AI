@@ -12,6 +12,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const auth_1 = __importDefault(require("./routes/auth"));
 require("./config/passport");
+const user_routes_1 = __importDefault(require("./routes/user.routes"));
 // Load environment variables
 dotenv_1.default.config();
 // Create Express app
@@ -23,8 +24,10 @@ mongoose_1.default.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017
     .catch((err) => console.error('MongoDB connection error:', err));
 // Middleware
 app.use((0, cors_1.default)({
-    origin: process.env.CLIENT_URL,
+    origin: true, // Allow all origins
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
@@ -42,6 +45,7 @@ app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
 // Routes
 app.use('/auth', auth_1.default);
+app.use('/api/user', user_routes_1.default);
 // Home route
 app.get('/', (_req, res) => {
     res.send('Freaky Fit API is running');

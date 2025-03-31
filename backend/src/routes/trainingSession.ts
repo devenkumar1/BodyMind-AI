@@ -144,7 +144,7 @@ router.patch('/:sessionId/cancel', auth, checkRole(['USER', 'TRAINER']), async (
       return res.status(404).json({ error: 'Session not found or cannot be cancelled' });
     }
 
-    session.status = 'CANCELLED';
+    session.status = 'REJECTED'; 
     await session.save();
 
     res.json(session);
@@ -181,7 +181,7 @@ router.patch('/sessions/:sessionId/status', auth, checkRole(['TRAINER']), async 
         return res.status(400).json({ error: 'Meeting link and scheduled time are required for accepting sessions' });
       }
       session.meetingLink = validatedData.meetingLink;
-      session.scheduledTime = validatedData.scheduledTime;
+      session.scheduledTime = new Date(validatedData.scheduledTime);
     }
 
     await session.save();

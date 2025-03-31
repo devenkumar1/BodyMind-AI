@@ -16,14 +16,19 @@ const generateToken = (user) => {
     return jsonwebtoken_1.default.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: '24h' });
 };
 // Google OAuth routes
-router.get('/google', passport_1.default.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', (req, res, next) => {
+    passport_1.default.authenticate('google', {
+        scope: ['profile', 'email'],
+        prompt: 'select_account'
+    })(req, res, next);
+});
 router.get('/google/callback', passport_1.default.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
     if (req.user) {
         const token = generateToken(req.user);
         res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${token}`);
     }
     else {
-        res.redirect(`${process.env.CLIENT_URL}/login`);
+        res.redirect(`${process.env.CLIENT_URL}/login?error=auth_failed`);
     }
 });
 // Local authentication routes
@@ -58,18 +63,57 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
         const token = generateToken(user);
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
     }
     catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
-// Check authentication status
-router.get('/status', (req, res) => {
-    if (req.isAuthenticated()) {
-        res.json({ isAuthenticated: true, user: req.user });
+// Add this middleware
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) {
+        return res.json({ isAuthenticated: false, user: null });
     }
-    else {
+    jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.json({ isAuthenticated: false, user: null });
+        }
+        req.user = decoded;
+        next();
+    });
+};
+// Update the status route
+router.get('/status', authenticateToken, async (req, res) => {
+    var _a;
+    try {
+        const user = await user_model_1.default.findById((_a = req.user) === null || _a === void 0 ? void 0 : _a.id);
+        if (user) {
+            res.json({
+                isAuthenticated: true,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    avatar: user.avatar,
+                    role: user.role
+                }
+            });
+        }
+        else {
+            res.json({ isAuthenticated: false, user: null });
+        }
+    }
+    catch (error) {
         res.json({ isAuthenticated: false, user: null });
     }
 });

@@ -42,7 +42,7 @@ const admin = async (req, res, next) => {
             return res.status(401).json({ message: 'Not authorized, user not found' });
         }
         const user = await user_model_1.default.findById(req.user._id);
-        if ((user === null || user === void 0 ? void 0 : user.role) === 'admin') {
+        if ((user === null || user === void 0 ? void 0 : user.role) === 'ADMIN') {
             next();
         }
         else {

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
+import User, { IUser } from '../models/user.model';
 
 interface JwtPayload {
   userId: string;
@@ -10,7 +10,7 @@ interface JwtPayload {
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
+      user?: IUser;
     }
   }
 }
@@ -49,4 +49,4 @@ export const checkRole = (roles: string[]) => {
 
     next();
   };
-}; 
+};

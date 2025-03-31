@@ -55,7 +55,7 @@ export const admin = async (req: Request, res: Response, next: NextFunction) => 
     }
 
     const user = await User.findById(req.user._id);
-    if (user?.role === 'admin') {
+    if (user?.role === 'ADMIN') {
       next();
     } else {
       res.status(403).json({ message: 'Not authorized as admin' });
