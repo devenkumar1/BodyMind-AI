@@ -45,7 +45,7 @@ function Assistant() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/user/ai-chat', {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/user/ai-chat`, {
         message: input.trim(),
       });
 
