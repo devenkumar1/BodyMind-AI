@@ -23,7 +23,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import axios from 'axios';
-import Input from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
 import { WorkoutPlanDisplay } from "@/components/WorkoutPlanDisplay";
 import { useToast } from "@/components/ui/use-toast";
 

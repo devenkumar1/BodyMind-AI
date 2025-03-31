@@ -15,6 +15,11 @@ import WorkoutGenerator from './pages/WorkoutGenerator';
 import { useAuth } from './context/AuthContext';
 import Assistant from './pages/Assistant';
 import AiRecipe from './pages/AiRecipe';
+import TrainerBooking from './pages/TrainerBooking';
+import MyBookings from './pages/MyBookings';
+import AdminDashboard from './pages/AdminDashboard';
+import TrainerDashboard from './pages/TrainerDashboard';
+import { Input } from '@/components/ui/Input';
 
 export default function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -45,6 +50,12 @@ export default function AppRoutes() {
             <Route path="/meal-plan" element={<Navigate to="/meal-generator" />} />
             <Route path="/ai-assistant" element={<Assistant/>} />
             <Route path="/ai-recipe" element={<AiRecipe/>} />
+            <Route path="/trainer-booking" element={<TrainerBooking/>} />
+            <Route path="/my-bookings" element={<MyBookings />} />
+            
+            {/* Role-specific routes */}
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
           </Route>
 
           {/* Fallback route */}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ArrowDown, ChefHat, Loader2, Plus, X, Utensils, Scale, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import Input from '@/components/ui/Input';
+import { Input } from '@/components/ui/Input';
 import { Label } from '@radix-ui/react-label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

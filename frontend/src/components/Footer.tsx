@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { DumbbellIcon, InstagramIcon, TwitterIcon, FacebookIcon, Github, Heart, Mail } from 'lucide-react';
-// import Input from '@/components/ui/input';
-import Input from '@/components/ui/Input';
+import { Input } from '@/components/ui/Input';
 import { Separator } from '@/components/ui/separator';
 
 export function Footer() {
