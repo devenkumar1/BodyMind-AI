@@ -1,14 +1,14 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IUser } from './User';
+import mongoose, { Schema, Document, Types } from 'mongoose';
+import { userSchema } from './user.model';
 
 export interface ITrainingSession extends Document {
-  trainer: IUser['_id'];
-  user: IUser['_id'];
+  trainer: Types.ObjectId;
+  user: Types.ObjectId;
   date: Date;
   duration: number;
-  status: 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED';
   meetingLink?: string;
-  notes?: string;
+  scheduledTime?: Date;
   price: number;
   createdAt: Date;
   updatedAt: Date;
@@ -35,11 +35,11 @@ const trainingSessionSchema = new Schema<ITrainingSession>({
   },
   status: { 
     type: String, 
-    enum: ['PENDING', 'ACCEPTED', 'COMPLETED', 'CANCELLED'],
+    enum: ['PENDING', 'ACCEPTED', 'REJECTED', 'COMPLETED'],
     default: 'PENDING'
   },
   meetingLink: { type: String },
-  notes: { type: String },
+  scheduledTime: { type: Date },
   price: { 
     type: Number, 
     required: true 

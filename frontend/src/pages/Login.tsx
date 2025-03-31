@@ -36,7 +36,15 @@ const Login: React.FC = () => {
     setError(null);
     try {
       await login(data.email, data.password);
-      navigate('/');
+      // Role-based redirection
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard');
+      } else if (user.role === 'TRAINER') {
+        navigate('/trainer/dashboard');
+      } else {
+        navigate('/home');
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {

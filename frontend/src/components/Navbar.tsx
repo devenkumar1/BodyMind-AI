@@ -225,7 +225,7 @@ export function Navbar() {
                 </NavigationMenuItem>
 
                 {/* Role-specific items */}
-                {user?.role === 'admin' && adminNavItems.map((item) => (
+                {user?.role === 'ADMIN' && adminNavItems.map((item) => (
                   <NavigationMenuItem key={item.path}>
                     <Link to={item.path} className="flex items-center">
                       {item.icon}
@@ -233,7 +233,7 @@ export function Navbar() {
                     </Link>
                   </NavigationMenuItem>
                 ))}
-                {user?.role === 'trainer' && trainerNavItems.map((item) => (
+                {user?.role === 'TRAINER' && trainerNavItems.map((item) => (
                   <NavigationMenuItem key={item.path}>
                     <Link to={item.path} className="flex items-center">
                       {item.icon}
@@ -401,7 +401,7 @@ export function Navbar() {
                     </div>
 
                     {/* Role-specific items */}
-                    {user?.role === 'admin' && adminNavItems.map((item) => (
+                    {user?.role === 'ADMIN' && adminNavItems.map((item) => (
                       <Link
                         key={item.path}
                         to={item.path}
@@ -411,7 +411,7 @@ export function Navbar() {
                         <span className="ml-2">{item.label}</span>
                       </Link>
                     ))}
-                    {user?.role === 'trainer' && trainerNavItems.map((item) => (
+                    {user?.role === 'TRAINER' && trainerNavItems.map((item) => (
                       <Link
                         key={item.path}
                         to={item.path}

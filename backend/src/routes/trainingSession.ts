@@ -2,8 +2,16 @@ import express from 'express';
 import { auth, checkRole } from '../middleware/auth';
 import { TrainingSession } from '../models/TrainingSession';
 import { User } from '../models/User';
+import { z } from 'zod';
 
 const router = express.Router();
+
+// Validation schema for session status update
+const updateSessionStatusSchema = z.object({
+  status: z.enum(['ACCEPTED', 'REJECTED']),
+  meetingLink: z.string().optional(),
+  scheduledTime: z.string().optional(),
+});
 
 // Get all training sessions (Admin only)
 router.get('/admin/sessions', auth, checkRole(['ADMIN']), async (req, res) => {
@@ -23,7 +31,7 @@ router.get('/trainer/sessions', auth, checkRole(['TRAINER']), async (req, res) =
   try {
     const sessions = await TrainingSession.find({ trainer: req.user._id })
       .populate('user', 'name email')
-      .sort({ date: 1 });
+      .sort({ createdAt: -1 });
     res.json(sessions);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
@@ -141,6 +149,53 @@ router.patch('/:sessionId/cancel', auth, checkRole(['USER', 'TRAINER']), async (
 
     res.json(session);
   } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update session status (accept/reject)
+router.patch('/sessions/:sessionId/status', auth, checkRole(['TRAINER']), async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const validatedData = updateSessionStatusSchema.parse(req.body);
+
+    const session = await TrainingSession.findOne({
+      _id: sessionId,
+      trainer: req.user._id
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    if (session.status !== 'PENDING') {
+      return res.status(400).json({ error: 'Session status can only be updated if pending' });
+    }
+
+    // Update session status
+    session.status = validatedData.status;
+    
+    // If accepting, add meeting details
+    if (validatedData.status === 'ACCEPTED') {
+      if (!validatedData.meetingLink || !validatedData.scheduledTime) {
+        return res.status(400).json({ error: 'Meeting link and scheduled time are required for accepting sessions' });
+      }
+      session.meetingLink = validatedData.meetingLink;
+      session.scheduledTime = validatedData.scheduledTime;
+    }
+
+    await session.save();
+
+    // If accepted, send notification to user (you can implement this later)
+    if (validatedData.status === 'ACCEPTED') {
+      // TODO: Send notification to user
+    }
+
+    res.json(session);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
     res.status(500).json({ error: 'Server error' });
   }
 });

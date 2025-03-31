@@ -2,8 +2,21 @@ import express from 'express';
 import { auth, checkRole } from '../middleware/auth';
 import { User } from '../models/User';
 import bcrypt from 'bcryptjs';
+import { z } from 'zod';
 
 const router = express.Router();
+
+// Validation schema for updating user role
+const updateUserRoleSchema = z.object({
+  role: z.enum(['ADMIN', 'TRAINER', 'USER']),
+});
+
+// Validation schema for updating trainer info
+const updateTrainerInfoSchema = z.object({
+  specialization: z.string().min(1, 'Specialization is required'),
+  hourlyRate: z.number().min(0, 'Hourly rate must be positive'),
+  bio: z.string().min(1, 'Bio is required'),
+});
 
 // Get all trainers
 router.get('/trainers', auth, checkRole(['ADMIN']), async (req, res) => {
@@ -103,6 +116,80 @@ router.delete('/trainers/:trainerId', auth, checkRole(['ADMIN']), async (req, re
     await trainer.remove();
     res.json({ message: 'Trainer deleted successfully' });
   } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get all users (Admin only)
+router.get('/users', auth, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    const users = await User.find()
+      .select('-password')
+      .sort({ name: 1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update user role (Admin only)
+router.patch('/users/:userId/role', auth, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const validatedData = updateUserRoleSchema.parse(req.body);
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update role
+    user.role = validatedData.role;
+    await user.save();
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.json(userResponse);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update trainer information (Admin only)
+router.patch('/trainers/:trainerId/info', auth, checkRole(['ADMIN']), async (req, res) => {
+  try {
+    const { trainerId } = req.params;
+    const validatedData = updateTrainerInfoSchema.parse(req.body);
+
+    const trainer = await User.findOne({
+      _id: trainerId,
+      role: 'TRAINER'
+    });
+
+    if (!trainer) {
+      return res.status(404).json({ error: 'Trainer not found' });
+    }
+
+    // Update trainer information
+    trainer.specialization = validatedData.specialization;
+    trainer.hourlyRate = validatedData.hourlyRate;
+    trainer.bio = validatedData.bio;
+    await trainer.save();
+
+    // Remove password from response
+    const trainerResponse = trainer.toObject();
+    delete trainerResponse.password;
+
+    res.json(trainerResponse);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
     res.status(500).json({ error: 'Server error' });
   }
 });

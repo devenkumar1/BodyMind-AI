@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await axios.post(`${API_URL}/login`, { email, password });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       setIsAuthenticated(true);
     } catch (error: any) {
@@ -53,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await axios.post(`${API_URL}/register`, { name, email, password });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       setIsAuthenticated(true);
     } catch (error: any) {
@@ -64,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setIsAuthenticated(false);
       setUser(null);
       navigate('/');
@@ -85,15 +88,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Set token in axios headers
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      const response = await axios.get(`${API_URL}/status`, {
-        withCredentials: true
-      });
+      const response = await axios.get(`${API_URL}/status`);
       
-      if (response.data.isAuthenticated || response.data.user) {
+      if (response.data.isAuthenticated && response.data.user) {
         setIsAuthenticated(true);
         setUser(response.data.user);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
       } else {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
         setIsAuthenticated(false);
         setUser(null);
@@ -101,6 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error checking auth status:', error);
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       delete axios.defaults.headers.common['Authorization'];
       setIsAuthenticated(false);
       setUser(null);

@@ -17,7 +17,16 @@ export default function AuthCallback() {
         if (token) {
           localStorage.setItem('token', token);
           await checkAuthStatus();
-          navigate('/home');
+          // Get user data from localStorage
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          // Role-based redirection
+          if (user.role === 'ADMIN') {
+            navigate('/admin/dashboard');
+          } else if (user.role === 'TRAINER') {
+            navigate('/trainer/dashboard');
+          } else {
+            navigate('/home');
+          }
         } else {
           console.error('No token received');
           navigate('/login');

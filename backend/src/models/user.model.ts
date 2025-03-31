@@ -5,16 +5,20 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password?: string;
-  role: 'user' | 'admin';
+  role: 'USER' | 'ADMIN' | 'TRAINER';
   googleId?: string;
   avatar?: string;
   authProvider: 'local' | 'google';
   createdAt: Date;
   updatedAt: Date;
+  specialization?: string;
+  rating?: number;
+  hourlyRate?: number;
+  bio?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-const userSchema = new Schema<IUser>(
+export const userSchema = new Schema<IUser>(
   {
     name: {
       type: String,
@@ -37,10 +41,10 @@ const userSchema = new Schema<IUser>(
       minlength: [6, 'Password must be at least 6 characters long'],
       select: false,
     },
-    role: {
-      type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+    role: { 
+      type: String, 
+      enum: ['ADMIN', 'Trainer', 'USER'],
+      default: 'USER'
     },
     googleId: {
       type: String,
@@ -56,6 +60,10 @@ const userSchema = new Schema<IUser>(
       default: 'local',
       required: true,
     },
+    specialization: { type: String },
+    rating: { type: Number, default: 0 },
+    hourlyRate: { type: Number },
+    bio: { type: String },
   },
   {
     timestamps: true,

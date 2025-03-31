@@ -17,7 +17,7 @@ import Assistant from './pages/Assistant';
 import AiRecipe from './pages/AiRecipe';
 import TrainerBooking from './pages/TrainerBooking';
 import MyBookings from './pages/MyBookings';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminDashboard from './pages/admin/Dashboard';
 import TrainerDashboard from './pages/TrainerDashboard';
 import { Input } from '@/components/ui/Input';
 

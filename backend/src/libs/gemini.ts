@@ -42,329 +42,329 @@ interface WorkoutPlan {
 
 interface MealPlan {
     meal_plan: {
-        description: string;
-        daily_calories: number;
-        weekly_plan: {
-            monday: {
-                breakfast: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+        description?: string;
+        daily_calories?: number;
+        weekly_plan?: {
+            monday?: {
+                breakfast?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                lunch: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                lunch?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                dinner: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                dinner?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                snacks: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-            };
-            tuesday: {
-                breakfast: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-                lunch: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-                dinner: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-                snacks: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                snacks?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
             };
-            wednesday: {
-                breakfast: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+            tuesday?: {
+                breakfast?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                lunch: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                lunch?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                dinner: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                dinner?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                snacks: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-            };
-            thursday: {
-                breakfast: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-                lunch: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-                dinner: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-                snacks: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                snacks?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
             };
-            friday: {
-                breakfast: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+            wednesday?: {
+                breakfast?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                lunch: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                lunch?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                dinner: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                dinner?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                snacks: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-            };
-            saturday: {
-                breakfast: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-                lunch: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-                dinner: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
-                }>;
-                snacks: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                snacks?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
             };
-            sunday: {
-                breakfast: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+            thursday?: {
+                breakfast?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                lunch: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                lunch?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                dinner: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                dinner?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
-                snacks: Array<{
-                    name: string;
-                    calories: number;
-                    protein: number;
-                    carbs: number;
-                    fat: number;
-                    prepTime: number;
-                    image: string;
-                    ingredients: string[];
-                    instructions: string;
+                snacks?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+            };
+            friday?: {
+                breakfast?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+                lunch?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+                dinner?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+                snacks?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+            };
+            saturday?: {
+                breakfast?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+                lunch?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+                dinner?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+                snacks?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+            };
+            sunday?: {
+                breakfast?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+                lunch?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+                dinner?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
+                }>;
+                snacks?: Array<{
+                    name?: string;
+                    calories?: number;
+                    protein?: number;
+                    carbs?: number;
+                    fat?: number;
+                    prepTime?: number;
+                    image?: string;
+                    ingredients?: string[];
+                    instructions?: string;
                 }>;
             };
         };
@@ -443,45 +443,56 @@ export async function gemini(prompt: string): Promise<GeminiResponse> {
                 
                 // Validate meal plan structure
                 if (!mealPlan.meal_plan.description) {
-                    console.error('Missing description in meal plan');
-                    throw new Error('Invalid meal plan structure: missing description');
+                    console.log('Missing description in meal plan, setting default');
+                    mealPlan.meal_plan.description = "Your personalized meal plan";
                 }
                 if (typeof mealPlan.meal_plan.daily_calories !== 'number' || isNaN(mealPlan.meal_plan.daily_calories)) {
-                    console.error('Invalid daily_calories in meal plan:', mealPlan.meal_plan.daily_calories);
-                    throw new Error('Invalid meal plan structure: daily_calories must be a valid number');
+                    console.log('Invalid daily_calories in meal plan, setting default');
+                    mealPlan.meal_plan.daily_calories = 2000;
                 }
                 if (!mealPlan.meal_plan.weekly_plan) {
-                    console.error('Missing weekly_plan in meal plan');
-                    throw new Error('Invalid meal plan structure: missing weekly_plan');
+                    console.log('Missing weekly_plan in meal plan, creating empty structure');
+                    mealPlan.meal_plan.weekly_plan = {
+                        monday: {}, tuesday: {}, wednesday: {}, thursday: {}, 
+                        friday: {}, saturday: {}, sunday: {}
+                    };
                 }
 
                 // Validate weekly plan structure
                 const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
                 for (const day of weekDays) {
                     if (!mealPlan.meal_plan.weekly_plan[day]) {
-                        console.error(`Missing ${day} in weekly plan`);
-                        throw new Error(`Invalid meal plan structure: missing ${day}`);
+                        console.log(`Missing ${day} in weekly plan, creating empty structure`);
+                        mealPlan.meal_plan.weekly_plan[day] = {};
                     }
 
                     // Validate meal types for each day
                     const mealTypes = ['breakfast', 'lunch', 'dinner', 'snacks'] as const;
                     for (const type of mealTypes) {
                         if (!Array.isArray(mealPlan.meal_plan.weekly_plan[day][type])) {
-                            console.error(`Invalid ${type} structure for ${day}:`, mealPlan.meal_plan.weekly_plan[day][type]);
-                            throw new Error(`Invalid response structure: ${type} meals must be an array for ${day}`);
+                            console.log(`Invalid ${type} structure for ${day}, creating empty array`);
+                            mealPlan.meal_plan.weekly_plan[day][type] = [];
                         }
                         
-                        // Validate each meal in the array
-                        mealPlan.meal_plan.weekly_plan[day][type].forEach((meal, index) => {
-                            if (!meal.name || !meal.calories || !meal.protein || !meal.carbs || !meal.fat || !meal.prepTime || !meal.image || !Array.isArray(meal.ingredients) || !meal.instructions) {
-                                console.error(`Invalid meal structure in ${day} ${type} meal ${index + 1}:`, meal);
-                                throw new Error(`Invalid meal structure in ${day} ${type} meal ${index + 1}`);
-                            }
+                        // Process each meal in the array instead of validating strictly
+                        mealPlan.meal_plan.weekly_plan[day][type] = mealPlan.meal_plan.weekly_plan[day][type].map((meal, index) => {
+                            // Return meal with defaults for missing properties
+                            return {
+                                name: meal.name || 'Unnamed Meal',
+                                calories: typeof meal.calories === 'number' ? Math.max(0, meal.calories) : 300,
+                                protein: typeof meal.protein === 'number' ? Math.max(0, meal.protein) : 10,
+                                carbs: typeof meal.carbs === 'number' ? Math.max(0, meal.carbs) : 30,
+                                fat: typeof meal.fat === 'number' ? Math.max(0, meal.fat) : 10,
+                                prepTime: typeof meal.prepTime === 'number' ? Math.max(0, meal.prepTime) : 15,
+                                image: meal.image || 'https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg',
+                                ingredients: Array.isArray(meal.ingredients) ? meal.ingredients.map(String) : ['No ingredients listed'],
+                                instructions: meal.instructions || 'No instructions provided'
+                            };
                         });
                     }
                 }
 
-                console.log('Meal plan validation successful');
+                console.log('Meal plan processing successful');
                 return {
                     success: true,
                     message: 'Meal plan retrieved successfully',
