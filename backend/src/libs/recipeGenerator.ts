@@ -7,14 +7,14 @@ export async function generateRecipe(
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 
   const prompt = recipePrompt(ingredients, fitnessGoal);
-  console.log("Sending prompt to Gemini...");
+  // console.log("Sending prompt to Gemini...");
 
   const response = await ai.models.generateContent({
     model: "gemini-2.0-flash",
     contents: prompt || "",
   });
   const text = response.text;
-  console.log("chat response from gemini:", text);
+  // console.log("chat response from gemini:", text);
   if (!text) throw new Error("No response from Gemini");
   
   const cleanedText = text
@@ -28,7 +28,7 @@ export async function generateRecipe(
   console.log('Cleaned response text:', cleanedText);
   try {
     const parsedResponse = JSON.parse(cleanedText);
-    console.log('Parsed message response:', JSON.stringify(parsedResponse, null, 2));
+    // console.log('Parsed message response:', JSON.stringify(parsedResponse, null, 2));
     return parsedResponse;
     
   } catch (error) {

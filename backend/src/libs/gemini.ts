@@ -395,12 +395,12 @@ export async function gemini(prompt: string): Promise<GeminiResponse> {
         
         // Clean the response text to ensure valid JSON
         const cleanedText = text.replace(/```json\n?|\n?```/g, '').trim();
-        console.log('Cleaned response text:', cleanedText);
+        // console.log('Cleaned response text:', cleanedText);
         
         try {
             // Parse the JSON response
             const parsedResponse = JSON.parse(cleanedText);
-            console.log('Parsed response:', JSON.stringify(parsedResponse, null, 2));
+            // console.log('Parsed response:', JSON.stringify(parsedResponse, null, 2));
             
             // Check if it's a workout plan or meal plan
             if ('workout_plan' in parsedResponse) {
@@ -492,7 +492,7 @@ export async function gemini(prompt: string): Promise<GeminiResponse> {
                     }
                 }
 
-                console.log('Meal plan processing successful');
+                // console.log('Meal plan processing successful');
                 return {
                     success: true,
                     message: 'Meal plan retrieved successfully',
