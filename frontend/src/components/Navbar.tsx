@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/navigation-menu"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { 
   Activity,
   Dumbbell, 
@@ -27,9 +28,11 @@ import {
   Calendar,
   Users,
   ClipboardList,
-  ChevronDown
+  ChevronDown,
+  Zap
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
+import axios from 'axios'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils";
@@ -38,6 +41,7 @@ export function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,6 +57,28 @@ export function Navbar() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
+
+  // Fetch subscription status
+  useEffect(() => {
+    const fetchSubscriptionStatus = async () => {
+      if (isAuthenticated && user) {
+        try {
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/user/subscription/details`, {
+            withCredentials: true
+          });
+
+          if (response.data.success && response.data.data.subscription) {
+            const subscription = response.data.data.subscription;
+            setIsPremium(subscription.plan === 'PREMIUM' && subscription.active);
+          }
+        } catch (error) {
+          console.error('Error fetching subscription status:', error);
+        }
+      }
+    };
+
+    fetchSubscriptionStatus();
+  }, [isAuthenticated, user]);
 
   // Group navigation items by category
   const workoutNavItems = [
@@ -224,6 +250,14 @@ export function Navbar() {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
 
+                {/* Subscription */}
+                <NavigationMenuItem>
+                  <Link to="/subscription" className="flex items-center">
+                    <Zap className="w-4 h-4 mr-2" />
+                    Subscription
+                  </Link>
+                </NavigationMenuItem>
+
                 {/* Role-specific items */}
                 {user?.role === 'ADMIN' && adminNavItems.map((item) => (
                   <NavigationMenuItem key={item.path}>
@@ -267,16 +301,24 @@ export function Navbar() {
           </div>
           {isAuthenticated ? (
             <div className="relative hidden md:block" ref={dropdownRef}>
-              <Button
-                variant="ghost"
-                className="relative h-8 w-8 rounded-full"
-                onClick={() => setShowDropdown(!showDropdown)}
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatar} alt={user?.name} />
-                  <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
-                </Avatar>
-              </Button>
+              <div className="flex items-center gap-2">
+                {isPremium && (
+                  <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 flex items-center gap-1">
+                    <Zap className="h-3 w-3" />
+                    Premium
+                  </Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                  onClick={() => setShowDropdown(!showDropdown)}
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </div>
               {showDropdown && (
                 <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-background border">
                   <div className="py-1">
@@ -329,7 +371,15 @@ export function Navbar() {
                         <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{user?.name}</div>
+                        <div className="font-medium flex items-center gap-2">
+                          {user?.name}
+                          {isPremium && (
+                            <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 flex items-center gap-1">
+                              <Zap className="h-3 w-3" />
+                              Premium
+                            </Badge>
+                          )}
+                        </div>
                         <div className="text-sm text-muted-foreground">{user?.email}</div>
                       </div>
                     </div>
@@ -399,6 +449,15 @@ export function Navbar() {
                         </Link>
                       ))}
                     </div>
+
+                    {/* Subscription */}
+                    <Link
+                      to="/subscription"
+                      className="flex items-center p-2 rounded-md hover:bg-accent"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      <span className="ml-2">Subscription</span>
+                    </Link>
 
                     {/* Role-specific items */}
                     {user?.role === 'ADMIN' && adminNavItems.map((item) => (

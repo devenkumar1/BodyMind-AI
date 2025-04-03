@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
 import MealGenerator from './pages/MealGenerator';
 import WorkoutGenerator from './pages/WorkoutGenerator';
+import Subscription from './pages/Subscription';
 import { useAuth } from './context/AuthContext';
 import Assistant from './pages/Assistant';
 import AiRecipe from './pages/AiRecipe';
@@ -51,6 +52,7 @@ export default function AppRoutes() {
             <Route path="/training" element={<Training />} />
             <Route path="/meal-generator" element={<MealGenerator />} />
             <Route path="/workout-generator" element={<WorkoutGenerator />} />
+            <Route path="/subscription" element={<Subscription />} />
             <Route path="/meal-plan" element={<Navigate to="/meal-generator" />} />
             <Route path="/ai-assistant" element={<Assistant/>} />
             <Route path="/ai-recipe" element={<AiRecipe/>} />

@@ -15,6 +15,7 @@ export interface IUser extends Document {
   rating?: number;
   hourlyRate?: number;
   bio?: string;
+  subscriptionStatus?: 'FREE' | 'PREMIUM';
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -64,6 +65,11 @@ export const userSchema = new Schema<IUser>(
     rating: { type: Number, default: 0 },
     hourlyRate: { type: Number },
     bio: { type: String },
+    subscriptionStatus: {
+      type: String,
+      enum: ['FREE', 'PREMIUM'],
+      default: 'FREE'
+    },
   },
   {
     timestamps: true,
@@ -91,4 +97,4 @@ userSchema.methods.comparePassword = async function (candidatePassword: string):
 
 const User = mongoose.model<IUser>('User', userSchema);
 
-export default User; 
+export default User;

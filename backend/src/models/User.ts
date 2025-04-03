@@ -10,6 +10,7 @@ export interface IUser extends Document {
   specialization?: string;
   hourlyRate?: number;
   bio?: string;
+  subscriptionStatus?: 'FREE' | 'PREMIUM';
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -43,6 +44,11 @@ const userSchema = new Schema<IUser>({
   },
   bio: { 
     type: String 
+  },
+  subscriptionStatus: {
+    type: String,
+    enum: ['FREE', 'PREMIUM'],
+    default: 'FREE'
   }
 }, {
   timestamps: true

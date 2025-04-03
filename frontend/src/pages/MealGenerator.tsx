@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
@@ -8,6 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Apple, Clock, Utensils, UtensilsCrossed, Salad, ChefHat, SaveIcon, RefreshCw, Filter } from 'lucide-react';
 import axios from 'axios';
+import SubscriptionBanner from "@/components/SubscriptionBanner";
 
 const dietTypes = [
   { value: 'balanced', label: 'Balanced' },
@@ -58,6 +59,7 @@ const MealGenerator = () => {
   const [meals, setMeals] = useState<any>(null);
   const [activeDay, setActiveDay] = useState('monday');
   const [activeMealType, setActiveMealType] = useState('breakfast');
+  const [subscriptionRequired, setSubscriptionRequired] = useState(false);
   const [preferences, setPreferences] = useState<Preferences>({
     excludeIngredients: '',
     timeConstraint: 30,
@@ -73,6 +75,7 @@ const MealGenerator = () => {
 
   const handleGenerate = async () => {
     setGenerating(true);
+    setSubscriptionRequired(false);
     try {
       // Log the current state values
       console.log('Current state values:', {
@@ -106,7 +109,7 @@ const MealGenerator = () => {
       // Log the request data before sending
       console.log('Request data being sent:', requestData);
 
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/user/generate-meal-plan`, requestData);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/user/generate-meal-plan`, requestData, { withCredentials: true });
 
       if (response.data.success) {
         // Store the meal plan data
@@ -114,9 +117,13 @@ const MealGenerator = () => {
       } else {
         console.error('Failed to generate meal plan:', response.data.error);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating meal plan:', error);
-      if (axios.isAxiosError(error)) {
+      
+      // Check if it's a subscription limit error
+      if (error.response?.status === 403 && error.response?.data?.subscriptionRequired) {
+        setSubscriptionRequired(true);
+      } else if (axios.isAxiosError(error)) {
         console.error('Response data:', error.response?.data);
       }
     } finally {
@@ -166,6 +173,8 @@ const MealGenerator = () => {
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-2">AI Meal Generator</h1>
         <p className="text-lg text-muted-foreground">Create personalized meal plans based on your preferences and nutrition goals</p>
       </motion.div>
+
+      {subscriptionRequired && <SubscriptionBanner type="meal" />}
 
       <div className="grid gap-8 md:grid-cols-3">
         {/* Meal Generator Form */}
@@ -254,7 +263,7 @@ const MealGenerator = () => {
             </CardContent>
             <CardFooter>
               {!meals ? (
-                <Button onClick={handleGenerate} className="w-full" disabled={generating}>
+                <Button onClick={handleGenerate} className="w-full" disabled={generating || subscriptionRequired}>
                   {generating ? (
                     <>
                       <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Generating Plan
@@ -407,4 +416,4 @@ const MealGenerator = () => {
   );
 };
 
-export default MealGenerator; 
+export default MealGenerator;

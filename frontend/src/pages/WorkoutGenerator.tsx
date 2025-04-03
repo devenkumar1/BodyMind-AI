@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
@@ -26,6 +26,7 @@ import axios from 'axios';
 import { Input } from "@/components/ui/Input";
 import { WorkoutPlanDisplay } from "@/components/WorkoutPlanDisplay";
 import { useToast } from "@/components/ui/use-toast";
+import SubscriptionBanner from "@/components/SubscriptionBanner";
 
 const fitnessLevels = [
   { value: 'beginner', label: 'Beginner' },
@@ -109,6 +110,7 @@ const WorkoutGenerator = () => {
     duration: "",
     daysPerweek: ""
   });
+  const [subscriptionRequired, setSubscriptionRequired] = useState(false);
   
   const handleEquipmentChange = (checked: boolean, id: string) => {
     if (checked) {
@@ -120,6 +122,7 @@ const WorkoutGenerator = () => {
   
   const handleGenerate = async() => {
     setGenerating(true);
+    setSubscriptionRequired(false);
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/user/generate-workout-plan`, {
         fitnessLevel,
@@ -140,13 +143,19 @@ const WorkoutGenerator = () => {
         console.error('Invalid response structure:', response.data);
         throw new Error(response.data?.message || "Invalid response format");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error occurred while generating a workout:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate workout plan. Please try again.",
-        variant: "destructive",
-      });
+      
+      // Check if it's a subscription limit error
+      if (error.response?.status === 403 && error.response?.data?.subscriptionRequired) {
+        setSubscriptionRequired(true);
+      } else {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to generate workout plan. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setGenerating(false);
     }
@@ -175,6 +184,8 @@ const WorkoutGenerator = () => {
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-2">AI Workout Generator</h1>
         <p className="text-lg text-muted-foreground">Create personalized workout routines based on your goals and available equipment</p>
       </motion.div>
+
+      {subscriptionRequired && <SubscriptionBanner type="workout" />}
 
       <div className="grid gap-8 md:grid-cols-3">
         {/* Workout Generator Form */}
@@ -284,7 +295,7 @@ const WorkoutGenerator = () => {
             </CardContent>
             <CardFooter>
               {!workouts ? (
-                <Button onClick={handleGenerate} className="w-full" disabled={generating}>
+                <Button onClick={handleGenerate} className="w-full" disabled={generating || subscriptionRequired}>
                   {generating ? (
                     <>
                       <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Generating Workouts
@@ -325,4 +336,4 @@ const WorkoutGenerator = () => {
   );
 };
 
-export default WorkoutGenerator; 
+export default WorkoutGenerator;

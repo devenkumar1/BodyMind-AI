@@ -18,7 +18,7 @@ declare global {
 // Authentication middleware
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let token;
+    let token:string;
 
     // Check for token in headers
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {

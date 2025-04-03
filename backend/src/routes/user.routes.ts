@@ -1,7 +1,9 @@
 import express from 'express';
 import {getUserProfile, updateUserProfile } from '../controllers/user.controller';
 import { protect } from '../middlewares/auth.middleware';
-import { generateWorkoutPlan, generateMealPlan, ChatWithAI,recipeGenerator } from '../controllers/fitness.controller';
+import { generateWorkoutPlan, generateMealPlan, ChatWithAI, recipeGenerator } from '../controllers/fitness.controller';
+import { canGenerateWorkoutPlan, canGenerateMealPlan } from '../middlewares/subscription.middleware';
+import subscriptionRoutes from '../routes/subscription.routes';
 
 const router = express.Router();
 
@@ -12,11 +14,16 @@ router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);
 
 // POST /api/users/generate-workout-plan - Generate workout plan
-router.post('/generate-workout-plan', protect, generateWorkoutPlan);
+router.post('/generate-workout-plan', protect, canGenerateWorkoutPlan, generateWorkoutPlan);
 
 // POST /api/users/generate-meal-plan - Generate meal plan
-router.post('/generate-meal-plan', protect, generateMealPlan);
+router.post('/generate-meal-plan', protect, canGenerateMealPlan, generateMealPlan);
 
-router.post('/ai-chat',ChatWithAI);
-router.post('/ai-recipe',recipeGenerator);
-export default router; 
+router.post('/ai-chat', ChatWithAI);
+router.post('/ai-recipe', recipeGenerator);
+
+// Subscription routes
+router.use('/subscription', subscriptionRoutes);
+
+
+export default router;
