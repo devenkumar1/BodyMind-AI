@@ -51,7 +51,7 @@ app.use('/api/user',userRoutes);
 
 // Home route
 app.get('/', (_req: express.Request, res: express.Response) => {
-  res.send('Freaky Fit API is running');
+  res.send('BodyMind AI is up and running');
 });
 
 //starting the server

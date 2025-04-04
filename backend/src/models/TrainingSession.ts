@@ -25,12 +25,9 @@ const trainingSessionSchema = new Schema<ITrainingSession>({
     ref: 'User',
     required: true 
   },
-  date: { 
-    type: Date, 
-    required: true 
-  },
   duration: { 
-    type: Number, 
+    type: Number,
+    default:1, 
     required: true 
   },
   status: { 
@@ -39,11 +36,7 @@ const trainingSessionSchema = new Schema<ITrainingSession>({
     default: 'PENDING'
   },
   meetingLink: { type: String },
-  scheduledTime: { type: Date },
-  price: { 
-    type: Number, 
-    required: true 
-  }
+  scheduledTime: { type: Date }
 }, {
   timestamps: true
 });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -20,7 +21,7 @@ import {
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
-import { RefreshCw, CheckCircle2, XCircle, Video } from 'lucide-react';
+import { RefreshCw, CheckCircle2, XCircle, Video, Clock, Calendar, AlertCircle } from 'lucide-react';
 
 interface TrainingSession {
   _id: string;
@@ -38,17 +39,38 @@ interface TrainingSession {
 
 export default function TrainerDashboard() {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
+  const [upcomingSessions, setUpcomingSessions] = useState<TrainingSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<TrainingSession | null>(null);
   const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
   const [meetingDetails, setMeetingDetails] = useState({
-    meetingLink: '',
     scheduledTime: ''
   });
 
   useEffect(() => {
     fetchSessions();
   }, []);
+  
+  // Filter upcoming sessions whenever sessions change
+  useEffect(() => {
+    const now = new Date();
+    const upcoming = sessions.filter(session => {
+      // Only include accepted sessions with a scheduled time in the future
+      if (session.status !== 'ACCEPTED' || !session.scheduledTime) return false;
+      const scheduledTime = new Date(session.scheduledTime);
+      return scheduledTime > now;
+    });
+    
+    // Sort by scheduled time (closest first)
+    upcoming.sort((a, b) => {
+      const timeA = new Date(a.scheduledTime || 0).getTime();
+      const timeB = new Date(b.scheduledTime || 0).getTime();
+      return timeA - timeB;
+    });
+    
+    setUpcomingSessions(upcoming);
+  }, [sessions]);
 
   const fetchSessions = async () => {
     try {
@@ -79,7 +101,6 @@ export default function TrainerDashboard() {
           },
           body: JSON.stringify({
             status: 'ACCEPTED',
-            meetingLink: meetingDetails.meetingLink,
             scheduledTime: meetingDetails.scheduledTime
           })
         }
@@ -89,7 +110,7 @@ export default function TrainerDashboard() {
       
       toast.success('Session accepted successfully');
       setIsAcceptDialogOpen(false);
-      setMeetingDetails({ meetingLink: '', scheduledTime: '' });
+      setMeetingDetails({ scheduledTime: '' });
       fetchSessions();
     } catch (error) {
       toast.error('Failed to accept session');
@@ -134,6 +155,52 @@ export default function TrainerDashboard() {
     }
   };
 
+  const joinMeeting = (meetingLink: string) => {
+    // Extract roomId and token from the meetingLink
+    // Format is /video-meeting/{roomId}?token={token}
+    const url = new URL(meetingLink, window.location.origin);
+    const pathname = url.pathname;
+    const roomId = pathname.split('/').pop();
+    const token = url.searchParams.get('token');
+    
+    if (roomId && token) {
+      navigate(`/video-meeting/${roomId}?token=${token}`);
+    } else {
+      toast.error('Invalid meeting link');
+    }
+  };
+
+  // Format date and time for display
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', { 
+      weekday: 'short',
+      month: 'short', 
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  // Calculate time remaining until meeting
+  const getTimeRemaining = (dateString: string) => {
+    const now = new Date();
+    const meetingTime = new Date(dateString);
+    const diffMs = meetingTime.getTime() - now.getTime();
+    
+    if (diffMs <= 0) return 'Starting now';
+    
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${diffMins} min${diffMins !== 1 ? 's' : ''} remaining`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} remaining`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''} remaining`;
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
@@ -143,6 +210,55 @@ export default function TrainerDashboard() {
           Refresh Sessions
         </Button>
       </div>
+      
+      {/* Upcoming Meetings Section */}
+      {upcomingSessions.length > 0 && (
+        <Card className="mb-8 border-2 border-primary/20 shadow-md">
+          <CardHeader className="bg-primary/5">
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-primary" />
+              Upcoming Meetings
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {upcomingSessions.map((session) => (
+                <Card key={session._id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="p-4 bg-muted/50">
+                    <CardTitle className="text-base flex justify-between items-center">
+                      <span>Session with {session.user.name}</span>
+                      <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                        {session.duration} min
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start gap-2">
+                      <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {session.scheduledTime && formatDateTime(session.scheduledTime)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {session.scheduledTime && getTimeRemaining(session.scheduledTime)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      className="w-full" 
+                      onClick={() => session.meetingLink && joinMeeting(session.meetingLink)}
+                    >
+                      <Video className="w-4 h-4 mr-2" />
+                      Join Meeting
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -179,16 +295,21 @@ export default function TrainerDashboard() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    {session.meetingLink && (
-                      <a
-                        href={session.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center text-blue-600 hover:text-blue-800"
+                    {session.meetingLink && session.status === 'ACCEPTED' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => joinMeeting(session.meetingLink || '')}
+                        className="flex items-center"
                       >
                         <Video className="w-4 h-4 mr-1" />
                         Join Meeting
-                      </a>
+                      </Button>
+                    )}
+                    {session.scheduledTime && session.status === 'ACCEPTED' && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {formatDateTime(session.scheduledTime)}
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>
@@ -211,14 +332,10 @@ export default function TrainerDashboard() {
                             </DialogHeader>
                             <div className="space-y-4">
                               <div className="space-y-2">
-                                <Label htmlFor="meetingLink">Google Meet Link</Label>
-                                <Input
-                                  id="meetingLink"
-                                  value={meetingDetails.meetingLink}
-                                  onChange={(e) => setMeetingDetails({ ...meetingDetails, meetingLink: e.target.value })}
-                                  placeholder="https://meet.google.com/..."
-                                  required
-                                />
+                                <div className="flex items-center gap-2 mb-2 p-2 bg-primary/10 rounded text-sm">
+                                  <AlertCircle className="w-4 h-4 text-primary" />
+                                  <p>A ZegoCloud video meeting will be automatically created when you accept this session.</p>
+                                </div>
                               </div>
                               <div className="space-y-2">
                                 <Label htmlFor="scheduledTime">Scheduled Time</Label>

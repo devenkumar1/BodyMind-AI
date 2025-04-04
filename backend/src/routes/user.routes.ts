@@ -4,6 +4,7 @@ import { protect } from '../middlewares/auth.middleware';
 import { generateWorkoutPlan, generateMealPlan, ChatWithAI, recipeGenerator } from '../controllers/fitness.controller';
 import { canGenerateWorkoutPlan, canGenerateMealPlan } from '../middlewares/subscription.middleware';
 import subscriptionRoutes from '../routes/subscription.routes';
+import trainerRoutes from './Trainer.routes'
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ router.post('/ai-recipe', recipeGenerator);
 
 // Subscription routes
 router.use('/subscription', subscriptionRoutes);
+router.use('/training',trainerRoutes);
 
 
 export default router;

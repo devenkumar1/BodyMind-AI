@@ -84,7 +84,7 @@ export function Navbar() {
   const workoutNavItems = [
     { path: '/workout-generator', label: 'Workout Builder', icon: <Activity className="w-4 h-4 mr-2" /> },
     { path: '/training', label: 'Training', icon: <Dumbbell className="w-4 h-4 mr-2" /> },
-    { path: '/trainer-booking', label: 'Book Trainer', icon: <Calendar className="w-4 h-4 mr-2" /> },
+    { path: '/booking', label: 'Book Trainer', icon: <Calendar className="w-4 h-4 mr-2" /> },
     { path: '/my-bookings', label: 'My Bookings', icon: <Calendar className="w-4 h-4 mr-2" /> }
   ];
 

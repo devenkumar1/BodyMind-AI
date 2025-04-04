@@ -13,6 +13,7 @@ interface User {
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
+  token: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -51,8 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
-      // Set auth state
+      // Set auth state and token
       setAuthState(true, user);
+      setToken(token);
       
       // Set token in axios headers
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -68,8 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
-      // Set auth state
+      // Set auth state and token
       setAuthState(true, user);
+      setToken(token);
       
       // Set token in axios headers
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -84,8 +88,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
-      // Set auth state
+      // Set auth state and token
       setAuthState(false, null);
+      setToken(null);
       
       // Remove token from axios headers
       delete axios.defaults.headers.common['Authorization'];
@@ -97,8 +102,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
-      // Set auth state
+      // Set auth state and token
       setAuthState(false, null);
+      setToken(null);
       
       // Remove token from axios headers
       delete axios.defaults.headers.common['Authorization'];
@@ -110,17 +116,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuthStatus = async (): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const storedToken = localStorage.getItem('token');
       
-      if (!token) {
+      if (!storedToken) {
         setAuthState(false, null);
+        setToken(null);
         delete axios.defaults.headers.common['Authorization'];
         setIsLoading(false);
         return false;
       }
 
       // Set token in axios headers
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+      setToken(storedToken);
       
       const response = await axios.get(`${API_URL}/status`);
       
@@ -137,8 +145,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
         
-        // Set auth state
+        // Set auth state and token
         setAuthState(false, null);
+        setToken(null);
         
         setIsLoading(false);
         return false;
@@ -149,8 +158,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('user');
       delete axios.defaults.headers.common['Authorization'];
       
-      // Set auth state
+      // Set auth state and token
       setAuthState(false, null);
+      setToken(null);
       
       setIsLoading(false);
       return false;
@@ -175,6 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider value={{ 
       isAuthenticated, 
       user, 
+      token,
       login, 
       register, 
       logout, 

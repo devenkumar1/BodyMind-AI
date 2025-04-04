@@ -20,6 +20,7 @@ import TrainerBooking from './pages/TrainerBooking';
 import MyBookings from './pages/MyBookings';
 import AdminDashboard from './pages/admin/Dashboard';
 import TrainerDashboard from './pages/TrainerDashboard';
+import VideoMeeting from './pages/VideoMeeting';
 import { Input } from '@/components/ui/Input';
 
 export default function AppRoutes() {
@@ -56,13 +57,15 @@ export default function AppRoutes() {
             <Route path="/meal-plan" element={<Navigate to="/meal-generator" />} />
             <Route path="/ai-assistant" element={<Assistant/>} />
             <Route path="/ai-recipe" element={<AiRecipe/>} />
-            <Route path="/trainer-booking" element={<TrainerBooking/>} />
             <Route path="/my-bookings" element={<MyBookings />} />
+            <Route path="/video-meeting/:roomId" element={<VideoMeeting />} />
             
             {/* Role-specific routes */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
           </Route>
+
+          <Route path="/booking" element={<TrainerBooking />} />
 
           {/* Fallback route */}
           <Route path="*" element={<div>Not Found</div>} />

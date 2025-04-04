@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Calendar from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Label as UILabel } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 interface TimeSlot {
   time: string;
@@ -27,22 +28,33 @@ const timeSlots: TimeSlot[] = [
   { time: '05:00 PM', available: true },
 ];
 
-const trainers = [
-  { id: 1, name: 'John Smith', specialization: 'Strength Training', rating: 4.8 },
-  { id: 2, name: 'Sarah Johnson', specialization: 'Yoga & Flexibility', rating: 4.9 },
-  { id: 3, name: 'Mike Wilson', specialization: 'Cardio & HIIT', rating: 4.7 },
-];
+
 
 function TrainerBooking() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [selectedTrainer, setSelectedTrainer] = useState<number | null>(null);
   const [bookingStep, setBookingStep] = useState<'date' | 'time' | 'trainer' | 'confirm'>('date');
-
+  const[trainers,setTrainers]=useState([]);
+  useEffect(() => {
+    getAllTrainers();
+  }, []);
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
     setBookingStep('time');
   };
+
+  const getAllTrainers= async()=>{
+    try {
+     const response= await axios.get(`http://localhost:5000/api/user/training/allTrainers`);
+     console.log("trainer data",response.data);
+     const data= await response.data.trainers;
+     console.log("the trainers",data);
+     setTrainers(data);
+    } catch (error) {
+      console.log("error occured in getting trainers data");
+    }
+  }
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
