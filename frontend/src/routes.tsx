@@ -21,6 +21,7 @@ import MyBookings from './pages/MyBookings';
 import AdminDashboard from './pages/admin/Dashboard';
 import TrainerDashboard from './pages/TrainerDashboard';
 import VideoMeeting from './pages/VideoMeeting';
+import MeetingSession from './components/MeetingSession';
 import { Input } from '@/components/ui/Input';
 
 export default function AppRoutes() {
@@ -59,6 +60,7 @@ export default function AppRoutes() {
             <Route path="/ai-recipe" element={<AiRecipe/>} />
             <Route path="/my-bookings" element={<MyBookings />} />
             <Route path="/video-meeting/:roomId" element={<VideoMeeting />} />
+            <Route path="/meeting-session" element={<MeetingSession />} />
             
             {/* Role-specific routes */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />

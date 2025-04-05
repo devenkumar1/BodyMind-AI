@@ -1,4 +1,4 @@
-import React, { useState ,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Calendar from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,15 +6,27 @@ import { Button } from '@/components/ui/Button';
 import { Calendar as CalendarIcon, Clock, User, CheckCircle2, ChevronRight, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+// import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label as UILabel } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import axios from 'axios';
+
+// ZegoCloud config constants
+// const ZEGO_APP_ID = process.env.VITE_ZEGO_APP_ID// You should add this to your .env file
 
 interface TimeSlot {
   time: string;
   available: boolean;
+}
+
+interface Trainer {
+  _id: string;
+  id: number;
+  name: string;
+  specialization: string;
+  rating: number;
 }
 
 const timeSlots: TimeSlot[] = [
@@ -28,31 +40,77 @@ const timeSlots: TimeSlot[] = [
   { time: '05:00 PM', available: true },
 ];
 
-
-
 function TrainerBooking() {
+  const { user, isAuthenticated } = useAuth();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [selectedTrainer, setSelectedTrainer] = useState<number | null>(null);
   const [bookingStep, setBookingStep] = useState<'date' | 'time' | 'trainer' | 'confirm'>('date');
-  const[trainers,setTrainers]=useState([]);
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  
+  // API URLs
+  const API_BASE_URL = 'http://localhost:5000/api/user/training';
+  
   useEffect(() => {
     getAllTrainers();
-  }, []);
+    
+    // Debug log to check user authentication status
+    console.log("Auth state:", { isAuthenticated, user });
+    
+    // Try to get user from localStorage if not available in context
+    if (!user) {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        console.log("Found user in localStorage");
+      } else {
+        console.log("No user found in localStorage");
+      }
+    }
+  }, [user, isAuthenticated]);
+  
+  // Function to get current user (from context or localStorage)
+  const getCurrentUser = () => {
+    if (user) return user;
+    
+    // Fallback to localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        return JSON.parse(storedUser);
+      } catch (e) {
+        console.error("Failed to parse stored user:", e);
+      }
+    }
+    return null;
+  };
+  
+  // Get the proper user ID regardless of whether it's stored as _id or id
+  const getUserId = (userObj: any) => {
+    if (!userObj) return null;
+    // Check both id and _id fields
+    return userObj._id || userObj.id || null;
+  };
+  
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
     setBookingStep('time');
   };
 
-  const getAllTrainers= async()=>{
+  const getAllTrainers = async () => {
     try {
-     const response= await axios.get(`http://localhost:5000/api/user/training/allTrainers`);
-     console.log("trainer data",response.data);
-     const data= await response.data.trainers;
-     console.log("the trainers",data);
-     setTrainers(data);
-    } catch (error) {
-      console.log("error occured in getting trainers data");
+      const response = await axios.get(`${API_BASE_URL}/allTrainers`);
+      
+      if (response.data && response.data.trainers) {
+        console.log("Trainers data:", response.data.trainers);
+        setTrainers(response.data.trainers);
+      } else {
+        toast.error('Failed to load trainers');
+      }
+    } catch (error: any) {
+      console.error("Error getting trainers:", error);
+      toast.error('Error loading trainers. Please try again.');
     }
   }
 
@@ -66,29 +124,156 @@ function TrainerBooking() {
     setBookingStep('confirm');
   };
 
-  const handleConfirmBooking = () => {
-    // Here you would typically make an API call to save the booking
-    toast.success('Booking confirmed successfully!');
-    // Reset the form
-    setDate(undefined);
-    setSelectedTime('');
-    setSelectedTrainer(null);
-    setBookingStep('date');
+  // Generate a unique meeting link using ZegoCloud
+  const generateMeetingLink = async () => {
+    const currentUser = getCurrentUser();
+    const userId = getUserId(currentUser);
+    
+    if (!currentUser || !userId) {
+      toast.error('You must be logged in to book a session');
+      console.error("Auth error - current user:", currentUser);
+      return null;
+    }
+    
+    try {
+      // Create a unique room ID for the meeting
+      const roomID = `meeting_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
+      
+      // Call our backend to generate a secure token
+      const response = await axios.post(`${API_BASE_URL}/generateMeetingToken`, {
+        userId: userId,
+        roomId: roomID
+      });
+      
+      if (!response.data || !response.data.token) {
+        throw new Error('Failed to generate meeting token');
+      }
+      
+      // Get token and app ID from response
+      const { token, appId } = response.data;
+      
+      // Create a full meeting link that includes all necessary information
+      const meetingLink = `https://room.zegocloud.com/join?roomID=${roomID}&token=${token}&userID=${userId}&userName=${encodeURIComponent(currentUser.name || 'User')}&appID=${appId}`;
+      
+      console.log("Generated ZegoCloud meeting link:", meetingLink);
+      
+      return meetingLink;
+    } catch (error) {
+      console.error("Error generating meeting link:", error);
+      setBookingError('Failed to generate meeting link. Please try again.');
+      
+      return null;
+    }
+  };
+
+  const handleConfirmBooking = async () => {
+    // Reset any previous errors
+    setBookingError(null);
+    
+    const currentUser = getCurrentUser();
+    const userId = getUserId(currentUser);
+    
+    console.log("Current user on confirm booking:", currentUser);
+    
+    if (!currentUser || !userId) {
+      setBookingError('You must be logged in to book a session');
+      return;
+    }
+    
+    if (!selectedTrainerInfo || !selectedTrainerInfo._id) {
+      setBookingError('Please select a trainer first');
+      return;
+    }
+    
+    if (!date || !selectedTime) {
+      setBookingError('Please select a date and time');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Generate meeting link
+      const meetingLink = await generateMeetingLink();
+      
+      if (!meetingLink) {
+        throw new Error('Failed to generate meeting link');
+      }
+      
+      // Combine date and time to create a proper scheduledTime
+      let scheduledDateTime = null;
+      if (date) {
+        const timeMatch = selectedTime.match(/(\d+):(\d+)\s+(AM|PM)/);
+        if (!timeMatch) {
+          throw new Error('Invalid time format');
+        }
+        
+        const [_, hours, minutes, period] = timeMatch;
+        
+        scheduledDateTime = new Date(date);
+        let hour = parseInt(hours);
+        
+        // Convert to 24-hour format
+        if (period === 'PM' && hour < 12) hour += 12;
+        if (period === 'AM' && hour === 12) hour = 0;
+        
+        scheduledDateTime.setHours(hour, parseInt(minutes), 0);
+      }
+      
+      if (!scheduledDateTime) {
+        throw new Error('Failed to parse date/time');
+      }
+      
+      // Send booking data to the server
+      const response = await axios.post(`${API_BASE_URL}/bookTrainer`, {
+        trainerId: selectedTrainerInfo._id,
+        userId: userId,
+        meetingLink: meetingLink,
+        scheduledTime: scheduledDateTime.toISOString(),
+      });
+
+      if (response.data && response.data.TrainingSession) {
+        // Handle successful booking
+        toast.success('Training session booked successfully!');
+        console.log('Session booked:', response.data.TrainingSession);
+        
+        // Reset form
+        setDate(undefined);
+        setSelectedTime('');
+        setSelectedTrainer(null);
+        setBookingStep('date');
+      } else {
+        throw new Error('Booking response is incomplete');
+      }
+    } catch (error: any) {
+      console.error('Error creating booking:', error);
+      
+      // Extract error message
+      const errorMessage = error.response?.data?.message || 'Failed to create booking. Please try again.';
+      setBookingError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const selectedTrainerInfo = trainers.find(trainer => trainer.id === selectedTrainer);
 
   const handleBack = () => {
     if (bookingStep === 'date') return;
-    setBookingStep(prevStep => prevStep === 'date' ? 'date' : prevStep as 'date');
+    if (bookingStep === 'time') setBookingStep('date');
+    if (bookingStep === 'trainer') setBookingStep('time');
+    if (bookingStep === 'confirm') setBookingStep('trainer');
+    
+    // Clear any error when going back
+    setBookingError(null);
   };
 
   const handleNext = () => {
-    if (bookingStep === 'confirm') {
-      handleConfirmBooking();
-    } else {
-      setBookingStep(prevStep => prevStep === 'date' ? 'time' : prevStep === 'time' ? 'trainer' : 'confirm');
-    }
+    if (bookingStep === 'date' && date) setBookingStep('time');
+    else if (bookingStep === 'time' && selectedTime) setBookingStep('trainer');
+    else if (bookingStep === 'trainer' && selectedTrainer) setBookingStep('confirm');
+    else if (bookingStep === 'confirm') handleConfirmBooking();
   };
 
   return (
@@ -167,7 +352,7 @@ function TrainerBooking() {
                       variant={selectedTime === slot.time ? "default" : "outline"}
                       className="w-full"
                       disabled={!slot.available}
-                      onClick={() => setSelectedTime(slot.time)}
+                      onClick={() => handleTimeSelect(slot.time)}
                     >
                       <Clock className="w-4 h-4 mr-2" />
                       {slot.time}
@@ -180,35 +365,41 @@ function TrainerBooking() {
             {bookingStep === 'trainer' && (
               <div className="space-y-4">
                 <UILabel>Select Your Trainer</UILabel>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {trainers.map((trainer) => (
-                    <Card
-                      key={trainer.id}
-                      className={`cursor-pointer transition-all ${
-                        selectedTrainer === trainer.id
-                          ? "border-primary shadow-lg scale-105"
-                          : "hover:border-primary/50"
-                      }`}
-                      onClick={() => setSelectedTrainer(trainer.id)}
-                    >
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <User className="w-5 h-5" />
-                          {trainer.name}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <p className="text-sm text-muted-foreground">{trainer.specialization}</p>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm">{trainer.rating}</span>
+                {trainers.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {trainers.map((trainer) => (
+                      <Card
+                        key={trainer._id}
+                        className={`cursor-pointer transition-all ${
+                          selectedTrainer === trainer.id
+                            ? "border-primary shadow-lg scale-105"
+                            : "hover:border-primary/50"
+                        }`}
+                        onClick={() => handleTrainerSelect(trainer.id)}
+                      >
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <User className="w-5 h-5" />
+                            {trainer.name}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <p className="text-sm text-muted-foreground">{trainer.specialization}</p>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                              <span className="text-sm">{trainer.rating}</span>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No trainers available at the moment. Please try again later.</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -242,18 +433,26 @@ function TrainerBooking() {
                     </div>
                   </div>
                 </div>
+                
+                {bookingError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
+                    {bookingError}
+                  </div>
+                )}
+                
                 <Button 
                   onClick={handleConfirmBooking}
                   className="w-full"
+                  disabled={isSubmitting}
                 >
-                  Confirm Booking
+                  {isSubmitting ? 'Creating Booking...' : 'Confirm Booking'}
                 </Button>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Update the navigation buttons */}
+        {/* Navigation buttons */}
         <div className="flex justify-between mt-8">
           <Button
             variant="outline"
@@ -267,10 +466,11 @@ function TrainerBooking() {
             disabled={
               (bookingStep === 'date' && !date) ||
               (bookingStep === 'time' && !selectedTime) ||
-              (bookingStep === 'trainer' && !selectedTrainer)
+              (bookingStep === 'trainer' && !selectedTrainer) ||
+              isSubmitting
             }
           >
-            {bookingStep === 'trainer' ? 'Confirm Booking' : 'Next'}
+            {bookingStep === 'confirm' ? 'Confirm Booking' : 'Next'}
             <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

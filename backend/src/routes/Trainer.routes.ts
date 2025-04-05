@@ -2,15 +2,28 @@ import { Express } from "express";
 import { Router } from "express";
 const router= Router();
 import { protect } from "../middlewares/auth.middleware";
-import { bookTrainer, getAllTrainers } from "../controllers/trainer.controller";
+import { 
+  acceptSessionRequest, 
+  bookTrainer, 
+  cancelSession, 
+  completeSession,
+  getAllTrainers, 
+  generateMeetingToken, 
+  getUserSessions,
+  getTrainerSessions,
+  rejectSessionRequest 
+} from "../controllers/trainer.controller";
 
 router.get('/allTrainers',getAllTrainers);
-router.post('/book',bookTrainer)
+router.post('/bookTrainer',bookTrainer);
+router.post('/accept',acceptSessionRequest);
+router.post('/reject',rejectSessionRequest);
+router.post('/generateMeetingToken', generateMeetingToken);
 
-
-
-
-
-
+// Add routes for user and trainer sessions
+router.get('/sessions/:userId', getUserSessions);
+router.get('/trainer/:trainerId/sessions', getTrainerSessions);
+router.post('/cancelSession', cancelSession);
+router.post('/completeSession', completeSession);
 
 export default router;
