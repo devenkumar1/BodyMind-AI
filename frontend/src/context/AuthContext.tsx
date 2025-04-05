@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 interface User {
   _id: string;
@@ -144,35 +145,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = async () => {
-    try {
-      await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Set auth state and token
-      setAuthState(false, null);
-      setToken(null);
-      
-      // Remove token from axios headers
-      delete axios.defaults.headers.common['Authorization'];
-      
-      navigate('/');
-    } catch (error) {
-      console.error('Error logging out:', error);
-      // Even if the server request fails, still log out locally
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Set auth state and token
-      setAuthState(false, null);
-      setToken(null);
-      
-      // Remove token from axios headers
-      delete axios.defaults.headers.common['Authorization'];
-      
-      navigate('/');
-    }
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setAuthState(false, null);
+    setToken(null);
+    
+    // Clear authorization header
+    delete axios.defaults.headers.common['Authorization'];
+    
+    // Show toast notification
+    toast.success('Logged out successfully');
   };
 
   const checkAuthStatus = async (): Promise<boolean> => {

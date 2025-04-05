@@ -17,7 +17,7 @@ import {
 import { format, addMinutes, isBefore, isAfter, parseISO } from "date-fns";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 // API URLs
@@ -240,6 +240,16 @@ const MyBookings = () => {
 
   const cancelSession = async (sessionId: string) => {
     try {
+      if (!sessionId) {
+        toast.error("Invalid session ID");
+        return;
+      }
+      
+      // Show a confirmation dialog
+      if (!window.confirm("Are you sure you want to cancel this session?")) {
+        return;
+      }
+      
       const response = await axios.post(`${API_BASE_URL}/cancelSession`, {
         sessionId
       });
@@ -270,15 +280,15 @@ const MyBookings = () => {
       return;
     }
     
-    // Show options for joining
-    toast.custom((t) => (
+    // Create a custom toast for the join options using react-hot-toast
+    const toastId = toast.custom(
       <div className="bg-white p-6 rounded-lg shadow-lg">
         <h3 className="text-lg font-semibold mb-3">How would you like to join?</h3>
         <div className="space-y-3">
           <button 
             className="w-full bg-primary text-white py-2 px-4 rounded-md flex items-center justify-center"
             onClick={() => {
-              toast.dismiss(t);
+              toast.dismiss(toastId);
               // Navigate to embedded meeting component
               navigate(`/meeting-session?link=${encodeURIComponent(meetingLink)}&sessionId=${session._id}&trainerName=${encodeURIComponent(session.trainer.name)}`);
             }}
@@ -290,7 +300,7 @@ const MyBookings = () => {
           <button 
             className="w-full border border-primary text-primary py-2 px-4 rounded-md flex items-center justify-center"
             onClick={() => {
-              toast.dismiss(t);
+              toast.dismiss(toastId);
               // Open in new tab
               window.open(meetingLink, '_blank');
             }}
@@ -299,8 +309,9 @@ const MyBookings = () => {
             Open in new tab
           </button>
         </div>
-      </div>
-    ), { duration: 10000 });
+      </div>,
+      { duration: 10000 }
+    );
   };
 
   // Map database status to UI status for filtering
@@ -445,8 +456,9 @@ const MyBookings = () => {
                 console.error("Error parsing user from localStorage:", e);
               }
               
-              toast.info(
-                <div className="space-y-2 text-xs max-w-md">
+              // Use custom toast instead of toast.info
+              toast.custom(
+                <div className="bg-white p-6 rounded-lg shadow-lg space-y-2 text-xs max-w-md">
                   <p><strong>Auth Info:</strong></p>
                   <p>User from context: {user ? 'Available' : 'Not available'}</p>
                   <p>User ID: {user?._id || 'Not found'}</p>
@@ -661,35 +673,6 @@ const MyBookings = () => {
           <p className="text-muted-foreground">
             No {activeTab} training sessions found.
           </p>
-          
-          {/* Debug buttons - only in development */}
-          {import.meta.env.DEV && (
-            <div className="mt-4 flex justify-center gap-2">
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={handleForceRefresh}
-              >
-                Try Again
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleForceLoadUser}
-              >
-                Force Load User
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleManualIdInput}
-              >
-                {showManualIdInput ? 'Hide Manual ID' : 'Show Manual ID'}
-              </Button>
-            </div>
-          )}
         </div>
       )}
     </div>

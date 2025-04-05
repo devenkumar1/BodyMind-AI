@@ -3,15 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Calendar from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/Button';
-import { Calendar as CalendarIcon, Clock, User, CheckCircle2, ChevronRight, Star } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, CheckCircle2, ChevronRight, Star, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 // import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label as UILabel } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 import axios from 'axios';
+import { Input } from '@/components/ui/Input';
 
 // ZegoCloud config constants
 // const ZEGO_APP_ID = process.env.VITE_ZEGO_APP_ID// You should add this to your .env file
@@ -49,6 +50,10 @@ function TrainerBooking() {
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [isCustomTime, setIsCustomTime] = useState(false);
+  const [customHour, setCustomHour] = useState('');
+  const [customMinute, setCustomMinute] = useState('');
+  const [customPeriod, setCustomPeriod] = useState<'AM' | 'PM'>('AM');
   
   // API URLs
   const API_BASE_URL = 'http://localhost:5000/api/user/training';
@@ -114,7 +119,37 @@ function TrainerBooking() {
     }
   }
 
+  // New function to handle custom time changes
+  const handleCustomTimeChange = () => {
+    // Validate hour and minute
+    const hour = parseInt(customHour);
+    const minute = parseInt(customMinute);
+    
+    if (isNaN(hour) || hour < 1 || hour > 12) {
+      toast.error('Please enter a valid hour (1-12)');
+      return;
+    }
+    
+    if (isNaN(minute) || minute < 0 || minute > 59) {
+      toast.error('Please enter a valid minute (0-59)');
+      return;
+    }
+    
+    // Format the time string (e.g., "09:30 AM")
+    const formattedHour = hour.toString().padStart(2, '0');
+    const formattedMinute = minute.toString().padStart(2, '0');
+    const timeString = `${formattedHour}:${formattedMinute} ${customPeriod}`;
+    
+    setSelectedTime(timeString);
+    setBookingStep('trainer');
+  };
+
   const handleTimeSelect = (time: string) => {
+    if (time === 'custom') {
+      setIsCustomTime(true);
+      return;
+    }
+    
     setSelectedTime(time);
     setBookingStep('trainer');
   };
@@ -203,9 +238,11 @@ function TrainerBooking() {
       // Combine date and time to create a proper scheduledTime
       let scheduledDateTime = null;
       if (date) {
-        const timeMatch = selectedTime.match(/(\d+):(\d+)\s+(AM|PM)/);
+        // Parse the time string - works for both predefined and custom time formats
+        // Format is: "09:30 AM" or "02:15 PM"
+        const timeMatch = selectedTime.match(/(\d+):(\d+)\s+(AM|PM)/i);
         if (!timeMatch) {
-          throw new Error('Invalid time format');
+          throw new Error('Invalid time format: ' + selectedTime);
         }
         
         const [_, hours, minutes, period] = timeMatch;
@@ -214,10 +251,20 @@ function TrainerBooking() {
         let hour = parseInt(hours);
         
         // Convert to 24-hour format
-        if (period === 'PM' && hour < 12) hour += 12;
-        if (period === 'AM' && hour === 12) hour = 0;
+        if (period.toUpperCase() === 'PM' && hour < 12) hour += 12;
+        if (period.toUpperCase() === 'AM' && hour === 12) hour = 0;
         
         scheduledDateTime.setHours(hour, parseInt(minutes), 0);
+        
+        // Add extra logging for debugging
+        console.log("Parsed time:", {
+          originalTime: selectedTime,
+          hours: hours,
+          minutes: minutes,
+          period: period,
+          hour24: hour,
+          finalDateTime: scheduledDateTime
+        });
       }
       
       if (!scheduledDateTime) {
@@ -242,6 +289,10 @@ function TrainerBooking() {
         setSelectedTime('');
         setSelectedTrainer(null);
         setBookingStep('date');
+        setIsCustomTime(false);
+        setCustomHour('');
+        setCustomMinute('');
+        setCustomPeriod('AM');
       } else {
         throw new Error('Booking response is incomplete');
       }
@@ -261,9 +312,16 @@ function TrainerBooking() {
 
   const handleBack = () => {
     if (bookingStep === 'date') return;
-    if (bookingStep === 'time') setBookingStep('date');
-    if (bookingStep === 'trainer') setBookingStep('time');
-    if (bookingStep === 'confirm') setBookingStep('trainer');
+    
+    if (bookingStep === 'time') {
+      setBookingStep('date');
+    } else if (bookingStep === 'trainer') {
+      setBookingStep('time');
+      // Clear custom time state if going back from trainer selection
+      setIsCustomTime(false);
+    } else if (bookingStep === 'confirm') {
+      setBookingStep('trainer');
+    }
     
     // Clear any error when going back
     setBookingError(null);
@@ -344,7 +402,10 @@ function TrainerBooking() {
 
             {bookingStep === 'time' && (
               <div className="space-y-4">
-                <UILabel>Select Time Slot</UILabel>
+                <div className="flex justify-between items-center">
+                  <UILabel>Select Time Slot</UILabel>
+                  <span className="text-xs text-muted-foreground">Need a different time? Try the Custom Time option</span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                   {timeSlots.map((slot) => (
                     <Button
@@ -358,7 +419,81 @@ function TrainerBooking() {
                       {slot.time}
                     </Button>
                   ))}
+                  
+                  {/* Custom time button */}
+                  <Button
+                    variant={isCustomTime ? "default" : "outline"}
+                    className="w-full"
+                    onClick={() => handleTimeSelect('custom')}
+                  >
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    Custom Time
+                  </Button>
                 </div>
+                
+                {/* Custom time input fields */}
+                {isCustomTime && (
+                  <div className="mt-6 p-4 border rounded-md bg-muted/20">
+                    <h3 className="text-sm font-medium mb-3">Enter Custom Time</h3>
+                    <div className="grid grid-cols-6 gap-2 items-center">
+                      <div className="col-span-2">
+                        <UILabel htmlFor="customHour" className="text-xs mb-1 block">Hour (1-12)</UILabel>
+                        <Input 
+                          id="customHour"
+                          type="number" 
+                          min="1" 
+                          max="12" 
+                          value={customHour}
+                          onChange={(e) => setCustomHour(e.target.value)}
+                          placeholder="Hour"
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <UILabel htmlFor="customMinute" className="text-xs mb-1 block">Minute (0-59)</UILabel>
+                        <Input 
+                          id="customMinute"
+                          type="number" 
+                          min="0" 
+                          max="59" 
+                          value={customMinute}
+                          onChange={(e) => setCustomMinute(e.target.value)}
+                          placeholder="Minute"
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <UILabel className="text-xs mb-1 block">AM/PM</UILabel>
+                        <div className="flex gap-2">
+                          <Button 
+                            type="button" 
+                            variant={customPeriod === 'AM' ? 'default' : 'outline'}
+                            className="flex-1 h-9"
+                            onClick={() => setCustomPeriod('AM')}
+                          >
+                            AM
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant={customPeriod === 'PM' ? 'default' : 'outline'}
+                            className="flex-1 h-9"
+                            onClick={() => setCustomPeriod('PM')}
+                          >
+                            PM
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                      <Button 
+                        onClick={handleCustomTimeChange}
+                        size="sm"
+                      >
+                        Confirm Time
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -465,7 +600,7 @@ function TrainerBooking() {
             onClick={handleNext}
             disabled={
               (bookingStep === 'date' && !date) ||
-              (bookingStep === 'time' && !selectedTime) ||
+              (bookingStep === 'time' && !selectedTime && !isCustomTime) ||
               (bookingStep === 'trainer' && !selectedTrainer) ||
               isSubmitting
             }

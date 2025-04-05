@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button'
 import { GoogleLoginButton } from "@/components/GoogleLoginButton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import toast from 'react-hot-toast';
 
 
 const loginSchema = z.object({
@@ -36,8 +37,14 @@ const Login: React.FC = () => {
     setError(null);
     try {
       await login(data.email, data.password);
-      // Role-based redirection
+      
+      // Get user details for toast and redirection
       const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      // Show success toast
+      toast.success(`Welcome back, ${user.name || 'User'}!`);
+      
+      // Role-based redirection
       if (user.role === 'ADMIN') {
         navigate('/admin/dashboard');
       } else if (user.role === 'TRAINER') {
@@ -47,6 +54,7 @@ const Login: React.FC = () => {
       }
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

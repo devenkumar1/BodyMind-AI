@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Dumbbell } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const registerSchema = z
   .object({
@@ -42,9 +43,11 @@ const Register: React.FC = () => {
     setError(null);
     try {
       await registerUser(data.name, data.email, data.password);
+      toast.success('Registration successful! Welcome to Freaky Fit.');
       navigate('/');
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
