@@ -45,6 +45,8 @@ interface TrainingSession {
   status: string;
   price?: number;
   meetingLink?: string;
+  date?: string;
+  time?: string;
 }
 
 export default function TrainerDashboard() {
@@ -56,9 +58,6 @@ export default function TrainerDashboard() {
   const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [meetingDetails, setMeetingDetails] = useState({
-    scheduledTime: ''
-  });
   const [localUser, setLocalUser] = useState<any>(null);
   const [manualUserId, setManualUserId] = useState<string>("");
   const [showManualIdInput, setShowManualIdInput] = useState<boolean>(false);
@@ -305,7 +304,18 @@ export default function TrainerDashboard() {
       
       if (response.data && response.data.sessions) {
         console.log("Fetched sessions:", response.data.sessions);
+        // Log the first session to see its exact structure
+        if (response.data.sessions.length > 0) {
+          console.log("First session:", JSON.stringify(response.data.sessions[0], null, 2));
+        }
         setSessions(response.data.sessions);
+      } else if (Array.isArray(response.data)) {
+        console.log("Fetched sessions array:", response.data);
+        // Log the first session to see its exact structure
+        if (response.data.length > 0) {
+          console.log("First session:", JSON.stringify(response.data[0], null, 2));
+        }
+        setSessions(response.data);
       } else {
         console.log("No sessions found in response:", response.data);
         setSessions([]);
@@ -403,22 +413,68 @@ export default function TrainerDashboard() {
         throw new Error("Failed to generate meeting link");
       }
       
-      if (!meetingDetails.scheduledTime) {
-        toast.error("Please select a scheduled time");
+      // Get the original time from the session
+      let scheduledTime = '';
+      
+      if (selectedSession.scheduledTime) {
+        // If we have a scheduledTime ISO string, use that directly
+        scheduledTime = selectedSession.scheduledTime;
+      } else if (selectedSession.date && selectedSession.time) {
+        // If we have separate date and time fields, convert to ISO string
+        try {
+          // Parse the time string
+          const timeMatch = selectedSession.time.match(/(\d+):(\d+)\s+(AM|PM)/i);
+          if (timeMatch) {
+            const [_, hours, minutes, period] = timeMatch;
+            let hour = parseInt(hours);
+            
+            // Convert to 24-hour format
+            if (period.toUpperCase() === 'PM' && hour < 12) hour += 12;
+            if (period.toUpperCase() === 'AM' && hour === 12) hour = 0;
+            
+            // Create a date object from the date
+            const dateObj = new Date(selectedSession.date);
+            dateObj.setHours(hour, parseInt(minutes), 0, 0);
+            
+            // Convert to ISO string
+            scheduledTime = dateObj.toISOString();
+            
+            console.log("Converted separate date/time to ISO string:", {
+              date: selectedSession.date,
+              time: selectedSession.time,
+              isoString: scheduledTime
+            });
+          } else {
+            throw new Error("Could not parse time string: " + selectedSession.time);
+          }
+        } catch (error) {
+          console.error("Error converting date/time to ISO string:", error);
+          toast.error("Could not process the scheduled time");
+          return;
+        }
+      } else {
+        toast.error("No scheduled time provided");
         return;
       }
+      
+      // Log the scheduled time being used
+      console.log("Accepting session with original scheduled time:", {
+        sessionId: selectedSession._id,
+        clientName: selectedSession.user?.name,
+        scheduledTime: scheduledTime,
+        formattedTime: formatDateTime(scheduledTime)
+      });
 
       // Update to use the correct API endpoint
       const response = await axios.post(`${API_BASE_URL}/accept`, {
         sessionId: selectedSession._id,
-        scheduledTime: meetingDetails.scheduledTime,
+        scheduledTime: scheduledTime,
         meetingLink
       });
 
       if (response.data) {
         toast.success('Session accepted successfully');
         setIsAcceptDialogOpen(false);
-        setMeetingDetails({ scheduledTime: '' });
         fetchSessions();
       }
     } catch (error: any) {
@@ -544,15 +600,35 @@ export default function TrainerDashboard() {
   const formatDateTime = (dateString: string) => {
     if (!dateString) return 'Not scheduled';
     
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', { 
-      weekday: 'short',
-      month: 'short', 
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    try {
+      const date = new Date(dateString);
+      
+      // First check if it's a valid date
+      if (isNaN(date.getTime())) {
+        console.error("Invalid date:", dateString);
+        return 'Invalid date';
+      }
+      
+      // Log the original date string and parsed date for debugging
+      console.log("Formatting date:", {
+        original: dateString,
+        parsed: date,
+        isoString: date.toISOString(),
+        localString: date.toLocaleString()
+      });
+      
+      return date.toLocaleString('en-US', { 
+        weekday: 'short',
+        month: 'short', 
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return 'Date format error';
+    }
   };
 
   // Calculate time remaining until meeting
@@ -624,6 +700,66 @@ export default function TrainerDashboard() {
     }
   };
 
+  // Function to test both possible API endpoints
+  const testEndpoints = async () => {
+    if (!user || !user._id) {
+      toast.error('No user ID available');
+      return;
+    }
+
+    const userId = user._id;
+    const endpoints = [
+      `${API_BASE_URL}/trainer/${userId}/sessions`,
+      `${API_BASE_URL}/trainer-sessions/${userId}`
+    ];
+
+    setIsLoading(true);
+    toast.loading('Testing API endpoints...');
+
+    try {
+      let foundWorkingEndpoint = false;
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Testing endpoint: ${endpoint}`);
+          const response = await axios.get(endpoint);
+          console.log(`Endpoint ${endpoint} response:`, response.data);
+          
+          if (response.status === 200) {
+            toast.success(`Endpoint working: ${endpoint}`);
+            // If we have data, we can show it
+            if (response.data) {
+              if (response.data.sessions) {
+                console.log(`Found ${response.data.sessions.length} sessions in 'sessions' field`);
+                console.log("First session:", JSON.stringify(response.data.sessions[0], null, 2));
+                setSessions(response.data.sessions);
+                foundWorkingEndpoint = true;
+                break;
+              } else if (Array.isArray(response.data)) {
+                console.log(`Found ${response.data.length} sessions in array format`);
+                if (response.data.length > 0) {
+                  console.log("First session:", JSON.stringify(response.data[0], null, 2));
+                }
+                setSessions(response.data);
+                foundWorkingEndpoint = true;
+                break;
+              }
+            }
+          }
+        } catch (error: any) {
+          console.error(`Endpoint ${endpoint} failed:`, error.message);
+          console.log('Error details:', error.response?.status, error.response?.data);
+        }
+      }
+      
+      if (!foundWorkingEndpoint) {
+        toast.error('No working endpoints found. Please check the API configuration.');
+      }
+    } finally {
+      toast.dismiss();
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
@@ -633,6 +769,14 @@ export default function TrainerDashboard() {
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             {isLoading ? 'Loading...' : 'Refresh Sessions'}
           </Button>
+          
+          {/* Test Endpoints button */}
+          {import.meta.env.DEV && (
+            <Button onClick={testEndpoints} disabled={isLoading} variant="outline">
+              <AlertCircle className="w-4 h-4 mr-2" />
+              Test Endpoints
+            </Button>
+          )}
           
           {/* Debug button - only show in development */}
           {import.meta.env.DEV && (
@@ -770,11 +914,14 @@ export default function TrainerDashboard() {
                       <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                       <div>
                         <p className="text-sm font-medium">
-                          {session.scheduledTime && formatDateTime(session.scheduledTime)}
+                          {session.scheduledTime ? formatDateTime(session.scheduledTime) : 
+                           (session.date && session.time) ? `${session.date} at ${session.time}` : 'No time scheduled'}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {session.scheduledTime && getTimeRemaining(session.scheduledTime)}
-                        </p>
+                        {session.scheduledTime && 
+                          <p className="text-xs text-muted-foreground">
+                            {getTimeRemaining(session.scheduledTime)}
+                          </p>
+                        }
                       </div>
                     </div>
                     
@@ -890,7 +1037,18 @@ export default function TrainerDashboard() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {session.scheduledTime ? formatDateTime(session.scheduledTime) : 'Not scheduled'}
+                      <div>
+                        {session.scheduledTime ? (
+                          <>
+                            <div className="font-medium">{formatDateTime(session.scheduledTime)}</div>
+                            <div className="text-xs text-muted-foreground">{getTimeRemaining(session.scheduledTime)}</div>
+                          </>
+                        ) : session.date && session.time ? (
+                          <div className="font-medium">{session.date} at {session.time}</div>
+                        ) : (
+                          <div className="text-gray-500">Not scheduled</div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>{session.duration || 60} min</TableCell>
                     <TableCell>
@@ -918,9 +1076,19 @@ export default function TrainerDashboard() {
                             setIsAcceptDialogOpen(open);
                             if (open) {
                               setSelectedSession(session);
-                              // Set default time to 1 hour from now
-                              setMeetingDetails({ 
-                                scheduledTime: getDefaultScheduledTime()
+                              
+                              // Log the session data for debugging
+                              console.log("Session selected for acceptance:", {
+                                sessionId: session._id,
+                                clientName: session.user?.name,
+                                scheduledTime: session.scheduledTime,
+                                date: session.date,
+                                time: session.time,
+                                formattedTime: session.scheduledTime ? 
+                                  formatDateTime(session.scheduledTime) : 
+                                  session.date && session.time ? 
+                                  `${session.date} at ${session.time}` : 
+                                  'Not scheduled'
                               });
                             }
                           }}>
@@ -930,7 +1098,7 @@ export default function TrainerDashboard() {
                                 size="sm"
                               >
                                 <CheckCircle2 className="w-4 h-4 mr-1" />
-                                Accept
+                                Accept Session at Client's Requested Time
                               </Button>
                             </DialogTrigger>
                             <DialogContent>
@@ -939,23 +1107,35 @@ export default function TrainerDashboard() {
                               </DialogHeader>
                               <div className="space-y-4">
                                 <div className="space-y-2">
+                                  <div className="flex flex-col gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                                    <div className="flex items-start gap-2">
+                                      <AlertCircle className="w-4 h-4 text-amber-600 mt-1" />
+                                      <div>
+                                        <p className="text-sm font-medium text-amber-800">Client's Requested Time:</p>
+                                        <p className="text-sm">
+                                          {session.scheduledTime ? formatDateTime(session.scheduledTime) : 
+                                           session.date && session.time ? `${session.date} at ${session.time}` :
+                                           'No specific time requested'}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
                                   <div className="flex items-center gap-2 mb-2 p-2 bg-primary/10 rounded text-sm">
                                     <AlertCircle className="w-4 h-4 text-primary" />
                                     <p>A ZegoCloud video meeting will be automatically created when you accept this session.</p>
                                   </div>
                                 </div>
                                 <div className="space-y-2">
-                                  <Label htmlFor="scheduledTime">Scheduled Time</Label>
-                                  <Input
-                                    id="scheduledTime"
-                                    type="datetime-local"
-                                    value={meetingDetails.scheduledTime}
-                                    onChange={(e) => setMeetingDetails({ ...meetingDetails, scheduledTime: e.target.value })}
-                                    required
-                                  />
-                                  <p className="text-xs text-muted-foreground">
-                                    Select a time when you'll be available for this session.
-                                  </p>
+                                  <Label htmlFor="scheduledTime">Scheduled Time (Cannot be changed)</Label>
+                                  <div className="border rounded-md p-2.5 bg-gray-50 text-gray-800">
+                                    {session.scheduledTime ? formatDateTime(session.scheduledTime) : 
+                                     session.date && session.time ? `${session.date} at ${session.time}` :
+                                     'No specific time requested'}
+                                  </div>
+                                  <div className="text-xs">
+                                    <p className="text-muted-foreground mt-2">You are accepting this session at the time requested by the client.</p>
+                                  </div>
                                 </div>
                                 <Button onClick={handleAcceptSession}>Confirm Acceptance</Button>
                               </div>
