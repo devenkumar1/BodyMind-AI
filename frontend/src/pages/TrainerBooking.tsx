@@ -14,9 +14,6 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { Input } from '@/components/ui/Input';
 
-// ZegoCloud config constants
-// const ZEGO_APP_ID = process.env.VITE_ZEGO_APP_ID// You should add this to your .env file
-
 interface TimeSlot {
   time: string;
   available: boolean;
@@ -61,10 +58,6 @@ function TrainerBooking() {
   useEffect(() => {
     getAllTrainers();
     
-    // Debug log to check user authentication status
-    console.log("Auth state:", { isAuthenticated, user });
-    
-    // Try to get user from localStorage if not available in context
     if (!user) {
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
@@ -75,11 +68,11 @@ function TrainerBooking() {
     }
   }, [user, isAuthenticated]);
   
-  // Function to get current user (from context or localStorage)
+
   const getCurrentUser = () => {
     if (user) return user;
     
-    // Fallback to localStorage
+   
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
@@ -91,10 +84,9 @@ function TrainerBooking() {
     return null;
   };
   
-  // Get the proper user ID regardless of whether it's stored as _id or id
+
   const getUserId = (userObj: any) => {
     if (!userObj) return null;
-    // Check both id and _id fields
     return userObj._id || userObj.id || null;
   };
   
@@ -159,7 +151,7 @@ function TrainerBooking() {
     setBookingStep('confirm');
   };
 
-  // Generate a unique meeting link using ZegoCloud
+  // Generate a meeting link using frontend-only approach
   const generateMeetingLink = async () => {
     const currentUser = getCurrentUser();
     const userId = getUserId(currentUser);
@@ -172,27 +164,18 @@ function TrainerBooking() {
     
     try {
       // Create a unique room ID for the meeting
-      const roomID = `meeting_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
+      const roomID = `meeting_${userId}_${Math.floor(Math.random() * 1000000)}`;
       
-      // Call our backend to generate a secure token
-      const response = await axios.post(`${API_BASE_URL}/generateMeetingToken`, {
-        userId: userId,
+      // Create a direct meeting link using the room ID
+      const frontendURL = window.location.origin;
+      const meetingLink = `${frontendURL}/meeting/join/${roomID}`;
+      
+      console.log("Generated meeting link:", meetingLink);
+      
+      return {
+        meetingLink,
         roomId: roomID
-      });
-      
-      if (!response.data || !response.data.token) {
-        throw new Error('Failed to generate meeting token');
-      }
-      
-      // Get token and app ID from response
-      const { token, appId } = response.data;
-      
-      // Create a full meeting link that includes all necessary information
-      const meetingLink = `https://room.zegocloud.com/join?roomID=${roomID}&token=${token}&userID=${userId}&userName=${encodeURIComponent(currentUser.name || 'User')}&appID=${appId}`;
-      
-      console.log("Generated ZegoCloud meeting link:", meetingLink);
-      
-      return meetingLink;
+      };
     } catch (error) {
       console.error("Error generating meeting link:", error);
       setBookingError('Failed to generate meeting link. Please try again.');
@@ -229,9 +212,9 @@ function TrainerBooking() {
     
     try {
       // Generate meeting link
-      const meetingLink = await generateMeetingLink();
+      const meetingData = await generateMeetingLink();
       
-      if (!meetingLink) {
+      if (!meetingData || !meetingData.meetingLink) {
         throw new Error('Failed to generate meeting link');
       }
       
@@ -275,7 +258,8 @@ function TrainerBooking() {
       const response = await axios.post(`${API_BASE_URL}/bookTrainer`, {
         trainerId: selectedTrainerInfo._id,
         userId: userId,
-        meetingLink: meetingLink,
+        meetingLink: meetingData.meetingLink,
+        roomId: meetingData.roomId,
         scheduledTime: scheduledDateTime.toISOString(),
       });
 

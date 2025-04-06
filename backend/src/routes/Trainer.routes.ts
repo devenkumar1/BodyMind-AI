@@ -8,7 +8,6 @@ import {
   cancelSession, 
   completeSession,
   getAllTrainers, 
-  generateMeetingToken, 
   getUserSessions,
   getTrainerSessions,
   rejectSessionRequest 
@@ -18,7 +17,6 @@ router.get('/allTrainers',getAllTrainers);
 router.post('/bookTrainer',bookTrainer);
 router.post('/accept',acceptSessionRequest);
 router.post('/reject',rejectSessionRequest);
-router.post('/generateMeetingToken', generateMeetingToken);
 
 // Add routes for user and trainer sessions
 router.get('/sessions/:userId', getUserSessions);

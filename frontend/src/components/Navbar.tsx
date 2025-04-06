@@ -29,7 +29,8 @@ import {
   Users,
   ClipboardList,
   ChevronDown,
-  Zap
+  Zap,
+  Video
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
@@ -94,7 +95,9 @@ export function Navbar() {
   ];
 
   const aiNavItems = [
-    { path: '/ai-assistant', label: 'AI Assistant', icon: <Brain className="w-4 h-4 mr-2" /> }
+    { path: '/ai-assistant', label: 'AI Assistant', icon: <Brain className="w-4 h-4 mr-2" /> },
+    // Add test meeting option only in development mode
+    ...(import.meta.env.DEV ? [{ path: '/test-meeting', label: 'Test Meeting', icon: <Video className="w-4 h-4 mr-2" /> }] : [])
   ];
 
   const dashboardNavItems = [

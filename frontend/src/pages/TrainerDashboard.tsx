@@ -348,7 +348,7 @@ export default function TrainerDashboard() {
       setIsLoading(false);
     }
   };
-
+  
   // Filter upcoming sessions whenever sessions change
   useEffect(() => {
     const now = new Date();
@@ -370,31 +370,21 @@ export default function TrainerDashboard() {
     setUpcomingSessions(upcoming);
   }, [sessions]);
 
-  // Generate a meeting link using ZegoCloud when accepting a session
+  // Generate a meeting link using frontend-only approach
   const generateMeetingLink = async (userId: string) => {
     try {
       // Create a unique room ID for the meeting
       const roomID = `meeting_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
       
-      // Call our backend to generate a secure token
-      const response = await axios.post(`${API_BASE_URL}/generateMeetingToken`, {
-        userId,
-        roomId: roomID
-      });
+      // Create a meeting link that only contains the room ID
+      const meetingLink = `${window.location.origin}/meeting/join/${roomID}`;
       
-      if (!response.data || !response.data.token) {
-        throw new Error('Failed to generate meeting token');
-      }
+      console.log("Generated meeting link:", meetingLink);
       
-      // Get token and app ID from response
-      const { token, appId } = response.data;
-      
-      // Create a full meeting link that includes all necessary information
-      const meetingLink = `https://room.zegocloud.com/join?roomID=${roomID}&token=${token}&userID=${userId}&userName=${encodeURIComponent(user?.name || 'Trainer')}&appID=${appId}`;
-      
-      console.log("Generated ZegoCloud meeting link:", meetingLink);
-      
-      return meetingLink;
+      return {
+        roomId: roomID,
+        meetingLink
+      };
     } catch (error) {
       console.error("Error generating meeting link:", error);
       toast.error("Failed to generate meeting link");
@@ -402,84 +392,68 @@ export default function TrainerDashboard() {
     }
   };
 
-  const handleAcceptSession = async () => {
-    if (!selectedSession) return;
-
+  const handleAcceptSession = async (session: any) => {
+    setIsLoading(true);
+    setSelectedSession(session);
+    
+    let scheduledTime;
+    
+    // Handle different date formats and possible undefined values
+    try {
+      if (session.scheduledTime) {
+        // If we already have a scheduledTime field, use it directly
+        const dateObj = new Date(session.scheduledTime);
+        if (!isNaN(dateObj.getTime())) {
+          scheduledTime = dateObj.toISOString();
+        } else {
+          scheduledTime = new Date().toISOString();
+        }
+      } else if (session.date) {
+        // If we have a date field but no scheduledTime
+        const dateObj = new Date(session.date);
+        
+        // Check if the date is valid before converting to ISO string
+        if (!isNaN(dateObj.getTime())) {
+          scheduledTime = dateObj.toISOString();
+        } else {
+          // Use current date/time as fallback
+          console.warn("Invalid date format in session, using current date:", session.date);
+          scheduledTime = new Date().toISOString();
+        }
+      } else {
+        // No valid date field, use current date/time
+        console.warn("No valid date found in session, using current date");
+        scheduledTime = new Date().toISOString();
+      }
+      
+      console.log("Using scheduled time:", scheduledTime);
+    } catch (error) {
+      console.error("Error processing date:", error);
+      scheduledTime = new Date().toISOString();
+    }
+    
     try {
       // Generate meeting link for the user
-      const meetingLink = await generateMeetingLink(selectedSession.user._id);
+      const meetingLinkData = await generateMeetingLink(session.user._id);
       
-      if (!meetingLink) {
+      if (!meetingLinkData) {
         throw new Error("Failed to generate meeting link");
       }
       
-      // Get the original time from the session
-      let scheduledTime = '';
-      
-      if (selectedSession.scheduledTime) {
-        // If we have a scheduledTime ISO string, use that directly
-        scheduledTime = selectedSession.scheduledTime;
-      } else if (selectedSession.date && selectedSession.time) {
-        // If we have separate date and time fields, convert to ISO string
-        try {
-          // Parse the time string
-          const timeMatch = selectedSession.time.match(/(\d+):(\d+)\s+(AM|PM)/i);
-          if (timeMatch) {
-            const [_, hours, minutes, period] = timeMatch;
-            let hour = parseInt(hours);
-            
-            // Convert to 24-hour format
-            if (period.toUpperCase() === 'PM' && hour < 12) hour += 12;
-            if (period.toUpperCase() === 'AM' && hour === 12) hour = 0;
-            
-            // Create a date object from the date
-            const dateObj = new Date(selectedSession.date);
-            dateObj.setHours(hour, parseInt(minutes), 0, 0);
-            
-            // Convert to ISO string
-            scheduledTime = dateObj.toISOString();
-            
-            console.log("Converted separate date/time to ISO string:", {
-              date: selectedSession.date,
-              time: selectedSession.time,
-              isoString: scheduledTime
-            });
-          } else {
-            throw new Error("Could not parse time string: " + selectedSession.time);
-          }
-        } catch (error) {
-          console.error("Error converting date/time to ISO string:", error);
-          toast.error("Could not process the scheduled time");
-          return;
-        }
-      } else {
-        toast.error("No scheduled time provided");
-        return;
-      }
-      
-      // Log the scheduled time being used
-      console.log("Accepting session with original scheduled time:", {
-        sessionId: selectedSession._id,
-        clientName: selectedSession.user?.name,
+      await axios.post(`${API_BASE_URL}/accept`, {
+        sessionId: session._id,
         scheduledTime: scheduledTime,
-        formattedTime: formatDateTime(scheduledTime)
+        meetingLink: meetingLinkData.meetingLink,
+        roomId: meetingLinkData.roomId
       });
 
-      // Update to use the correct API endpoint
-      const response = await axios.post(`${API_BASE_URL}/accept`, {
-        sessionId: selectedSession._id,
-        scheduledTime: scheduledTime,
-        meetingLink
-      });
-
-      if (response.data) {
-        toast.success('Session accepted successfully');
-        setIsAcceptDialogOpen(false);
-        fetchSessions();
-      }
-    } catch (error: any) {
+      toast.success("Session accepted successfully");
+      fetchSessions();
+    } catch (error) {
       console.error("Error accepting session:", error);
-      toast.error(error.response?.data?.message || "Failed to accept session");
+      toast.error("Failed to accept session");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -558,7 +532,7 @@ export default function TrainerDashboard() {
       if (response.data) {
         toast.success("Session marked as completed successfully");
         // Refresh the sessions list
-        fetchSessions();
+      fetchSessions();
       }
     } catch (error: any) {
       console.error("Error completing session:", error);
@@ -601,7 +575,7 @@ export default function TrainerDashboard() {
     if (!dateString) return 'Not scheduled';
     
     try {
-      const date = new Date(dateString);
+    const date = new Date(dateString);
       
       // First check if it's a valid date
       if (isNaN(date.getTime())) {
@@ -617,14 +591,14 @@ export default function TrainerDashboard() {
         localString: date.toLocaleString()
       });
       
-      return date.toLocaleString('en-US', { 
-        weekday: 'short',
-        month: 'short', 
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
+    return date.toLocaleString('en-US', { 
+      weekday: 'short',
+      month: 'short', 
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
     } catch (error) {
       console.error("Error formatting date:", error);
       return 'Date format error';
@@ -843,7 +817,7 @@ export default function TrainerDashboard() {
               size="sm"
             >
               Debug Info
-            </Button>
+        </Button>
           )}
         </div>
       </div>
@@ -918,22 +892,22 @@ export default function TrainerDashboard() {
                            (session.date && session.time) ? `${session.date} at ${session.time}` : 'No time scheduled'}
                         </p>
                         {session.scheduledTime && 
-                          <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                             {getTimeRemaining(session.scheduledTime)}
-                          </p>
+                        </p>
                         }
                       </div>
                     </div>
                     
                     {/* Only show join button if the session is within the joinable window */}
                     {session.meetingLink && session.scheduledTime && isSessionJoinable(session.scheduledTime) && (
-                      <Button 
-                        className="w-full" 
+                    <Button 
+                      className="w-full" 
                         onClick={() => handleJoinSession(session.meetingLink || '', session)}
-                      >
-                        <Video className="w-4 h-4 mr-2" />
-                        Join Meeting
-                      </Button>
+                    >
+                      <Video className="w-4 h-4 mr-2" />
+                      Join Meeting
+                    </Button>
                     )}
                     
                     {/* Show "upcoming" message if not yet joinable */}
@@ -1016,22 +990,22 @@ export default function TrainerDashboard() {
               )}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>User</TableHead>
                   <TableHead>Scheduled Time</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Meeting</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sessions.map((session) => (
-                  <TableRow key={session._id}>
-                    <TableCell>
-                      <div>
+                <TableHead>Duration</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Meeting</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sessions.map((session) => (
+                <TableRow key={session._id}>
+                  <TableCell>
+                    <div>
                         <div className="font-medium">{session.user?.name || 'Unknown User'}</div>
                         <div className="text-sm text-muted-foreground">{session.user?.email || 'No email'}</div>
                       </div>
@@ -1048,30 +1022,30 @@ export default function TrainerDashboard() {
                         ) : (
                           <div className="text-gray-500">Not scheduled</div>
                         )}
-                      </div>
-                    </TableCell>
+                    </div>
+                  </TableCell>
                     <TableCell>{session.duration || 60} min</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(session.status)}`}>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(session.status)}`}>
                         {session.status.toUpperCase()}
-                      </span>
-                    </TableCell>
-                    <TableCell>
+                    </span>
+                  </TableCell>
+                  <TableCell>
                       {session.meetingLink && session.status.toUpperCase() === 'ACCEPTED' && isSessionJoinable(session.scheduledTime || '') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
+                      <Button
+                        variant="outline"
+                        size="sm"
                           onClick={() => handleJoinSession(session.meetingLink || '', session)}
-                          className="flex items-center"
-                        >
-                          <Video className="w-4 h-4 mr-1" />
-                          Join Meeting
-                        </Button>
-                      )}
-                    </TableCell>
-                    <TableCell>
+                        className="flex items-center"
+                      >
+                        <Video className="w-4 h-4 mr-1" />
+                        Join Meeting
+                      </Button>
+                    )}
+                  </TableCell>
+                  <TableCell>
                       {session.status.toUpperCase() === 'PENDING' && (
-                        <div className="flex gap-2">
+                      <div className="flex gap-2">
                           <Dialog open={isAcceptDialogOpen && selectedSession?._id === session._id} onOpenChange={(open) => {
                             setIsAcceptDialogOpen(open);
                             if (open) {
@@ -1092,21 +1066,21 @@ export default function TrainerDashboard() {
                               });
                             }
                           }}>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                              >
-                                <CheckCircle2 className="w-4 h-4 mr-1" />
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                            >
+                              <CheckCircle2 className="w-4 h-4 mr-1" />
                                 Accept Session at Client's Requested Time
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Accept Training Session</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Accept Training Session</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div className="space-y-2">
                                   <div className="flex flex-col gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
                                     <div className="flex items-start gap-2">
                                       <AlertCircle className="w-4 h-4 text-amber-600 mt-1" />
@@ -1121,12 +1095,12 @@ export default function TrainerDashboard() {
                                     </div>
                                   </div>
                                   
-                                  <div className="flex items-center gap-2 mb-2 p-2 bg-primary/10 rounded text-sm">
-                                    <AlertCircle className="w-4 h-4 text-primary" />
-                                    <p>A ZegoCloud video meeting will be automatically created when you accept this session.</p>
-                                  </div>
+                                <div className="flex items-center gap-2 mb-2 p-2 bg-primary/10 rounded text-sm">
+                                  <AlertCircle className="w-4 h-4 text-primary" />
+                                  <p>A ZegoCloud video meeting will be automatically created when you accept this session.</p>
                                 </div>
-                                <div className="space-y-2">
+                              </div>
+                              <div className="space-y-2">
                                   <Label htmlFor="scheduledTime">Scheduled Time (Cannot be changed)</Label>
                                   <div className="border rounded-md p-2.5 bg-gray-50 text-gray-800">
                                     {session.scheduledTime ? formatDateTime(session.scheduledTime) : 
@@ -1136,21 +1110,21 @@ export default function TrainerDashboard() {
                                   <div className="text-xs">
                                     <p className="text-muted-foreground mt-2">You are accepting this session at the time requested by the client.</p>
                                   </div>
-                                </div>
-                                <Button onClick={handleAcceptSession}>Confirm Acceptance</Button>
                               </div>
-                            </DialogContent>
-                          </Dialog>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRejectSession(session._id)}
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Reject
-                          </Button>
-                        </div>
-                      )}
+                              <Button onClick={() => handleAcceptSession(session)}>Confirm Acceptance</Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRejectSession(session._id)}
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Reject
+                        </Button>
+                      </div>
+                    )}
                       
                       {session.status.toUpperCase() === 'ACCEPTED' && (
                         <Button
@@ -1162,12 +1136,12 @@ export default function TrainerDashboard() {
                           <CheckCircle2 className="w-4 h-4 mr-1" />
                           Mark as Completed
                         </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
           )}
         </CardContent>
       </Card>

@@ -1,11 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
 import { TrainingSession } from "../models/TrainingSession";
-import generateZegoToken from "../utils/zegoToken";
-
-// ZegoCloud credentials - should be in environment variables
-const ZEGO_APP_ID = process.env.ZEGO_APP_ID ? parseInt(process.env.ZEGO_APP_ID) : 0;
-const ZEGO_SERVER_SECRET = process.env.ZEGO_SERVER_SECRET || '';
 
 export const getAllTrainers=async(req:Request,res:Response)=>{
     try {
@@ -20,7 +15,7 @@ export const getAllTrainers=async(req:Request,res:Response)=>{
 }
 
 export const bookTrainer=async (req:Request,res:Response)=>{
-    const {trainerId,userId,meetingLink,scheduledTime}=await req.body;
+    const {trainerId,userId,meetingLink,scheduledTime,roomId}=await req.body;
     if(!trainerId||!userId ||!meetingLink||!scheduledTime) return res.status(400).json({message:"trainer id is mandatory"});
     try {
        const newSession= await TrainingSession.create({
@@ -28,6 +23,7 @@ export const bookTrainer=async (req:Request,res:Response)=>{
         trainer: trainerId,
         meetingLink: meetingLink,
         scheduledTime: scheduledTime,
+        roomId: roomId,
         status: 'PENDING'
        })
 
@@ -39,48 +35,8 @@ export const bookTrainer=async (req:Request,res:Response)=>{
     }
 }
 
-/**
- * Generate a ZegoCloud token for secure video calls
- */
-export const generateMeetingToken = async (req: Request, res: Response) => {
-    const { userId, roomId } = req.body;
-    
-    if (!userId || !roomId) {
-        return res.status(400).json({ message: "User ID and room ID are required" });
-    }
-    
-    try {
-        if (!ZEGO_APP_ID || !ZEGO_SERVER_SECRET) {
-          console.log("ZegoCloud credentials not configured on server");
-            return res.status(500).json({ 
-                message: "ZegoCloud credentials not configured on server" 
-            });
-        }
-        
-        // Generate token with 2 hours validity
-        const token = generateZegoToken(
-            ZEGO_APP_ID, 
-            ZEGO_SERVER_SECRET, 
-            userId,
-            roomId,
-            3600 
-        );
-        
-        // Return the token and meeting details
-        return res.status(200).json({
-            message: "Meeting token generated successfully",
-            token,
-            roomId,
-            appId: ZEGO_APP_ID
-        });
-    } catch (error) {
-        console.error("Error generating meeting token:", error);
-        return res.status(500).json({ message: "Failed to generate meeting token" });
-    }
-};
-
 export const acceptSessionRequest = async (req:Request,res:Response)=>{
-    const {sessionId, scheduledTime, meetingLink} = await req.body;
+    const {sessionId, scheduledTime, meetingLink, roomId} = await req.body;
     if(!sessionId) return res.status(400).json({message:"session ID is required"});
     try {
         const currentSession = await TrainingSession.findById(sessionId);
@@ -91,6 +47,10 @@ export const acceptSessionRequest = async (req:Request,res:Response)=>{
         
         if (meetingLink) {
             currentSession.meetingLink = meetingLink;
+        }
+        
+        if (roomId) {
+            currentSession.roomId = roomId;
         }
         
         if (scheduledTime) {

@@ -8,6 +8,7 @@ export interface ITrainingSession extends Document {
   duration: number;
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED';
   meetingLink?: string;
+  roomId?: string;
   scheduledTime?: Date;
   price: number;
   createdAt: Date;
@@ -36,6 +37,7 @@ const trainingSessionSchema = new Schema<ITrainingSession>({
     default: 'PENDING'
   },
   meetingLink: { type: String },
+  roomId: { type: String },
   scheduledTime: { type: Date }
 }, {
   timestamps: true
