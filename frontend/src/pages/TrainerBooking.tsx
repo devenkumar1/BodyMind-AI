@@ -319,7 +319,7 @@ function TrainerBooking() {
   };
 
   return (
-    <div className="container max-w-4xl py-12 mx-auto px-4">
+    <div className="container w-full min-h-screen overflow-hidden py-12 mx-auto px-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
