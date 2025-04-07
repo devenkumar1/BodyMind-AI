@@ -67,7 +67,7 @@ const VideoMeeting = () => {
         </Button>
         <div className="flex items-center text-sm">
           <Clock className="w-4 h-4  text-muted-foreground" />
-          <span className="text-xs sm:text-sm text-muted-foreground">
+          <span className="md:text-xs md:block hidden text-muted-foreground">
             ID: {roomId}
           </span>
         </div>
