@@ -43,7 +43,7 @@ const VideoMeeting = () => {
         turnOnCameraWhenJoining: true,
         turnOnMicrophoneWhenJoining: true,
         onLeaveRoom: () => {
-          navigate('/dashboard');
+          navigate('/my-bookings');
         }
       });
     } catch (err) {
@@ -52,21 +52,23 @@ const VideoMeeting = () => {
   }, [roomId, user, navigate]);
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-2 sm:p-4 border-b">
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/my-bookings')}
+          className="flex items-center text-sm"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
+          <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">Back to Dashboard</span>
+          <span className="sm:hidden">Back</span>
         </Button>
-        <div className="flex items-center">
-          <Clock className="w-4 h-4 mr-2 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">
-            Meeting ID: {roomId}
+        <div className="flex items-center text-sm">
+          <Clock className="w-4 h-4  text-muted-foreground" />
+          <span className="text-xs sm:text-sm text-muted-foreground">
+            ID: {roomId}
           </span>
         </div>
       </div>
@@ -75,8 +77,11 @@ const VideoMeeting = () => {
       <div 
         id="meeting-container"
         ref={myMeetingRef}
-        className="flex-1"
-        style={{ height: 'calc(100vh - 65px)' }}
+        className="flex-1 w-full h-full"
+        style={{ 
+          height: 'calc(100vh - 48px)',
+          minHeight: '0' 
+        }}
       />
     </div>
   );
