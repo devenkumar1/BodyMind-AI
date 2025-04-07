@@ -66,7 +66,7 @@ export default function TrainerDashboard() {
   // Check for user in context and localStorage
   useEffect(() => {
     // Log auth state
-    console.log("Auth state:", { isAuthenticated, hasUser: !!user, token: !!token });
+    // console.log("Auth state:", { isAuthenticated, hasUser: !!user, token: !!token });
     
     if (!user) {
       console.log("No user in context, trying to force load");
@@ -77,14 +77,13 @@ export default function TrainerDashboard() {
         console.log("Successfully force loaded user from localStorage:", result.user);
         // Log the user ID to verify it was loaded correctly
         const userId = result.user?._id || result.user?.id;
-        console.log("User ID from forced load:", userId);
+        // console.log("User ID from forced load:", userId);
       } else {
         try {
-          // Try to get user from localStorage as fallback
           const storedUserStr = localStorage.getItem('user');
           if (storedUserStr) {
             const storedUser = JSON.parse(storedUserStr);
-            console.log("Retrieved user from localStorage:", storedUser);
+            // console.log("Retrieved user from localStorage:", storedUser);
             setLocalUser(storedUser);
           }
         } catch (error) {
@@ -92,27 +91,15 @@ export default function TrainerDashboard() {
         }
       }
     } else {
-      console.log("User from context:", user);
+      console.log("User from context found");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isAuthenticated]);
 
-  // Add the debug logging
-  useEffect(() => {
-    console.log("Using API URL:", API_BASE_URL);
-    console.log("Environment variables:", {
-      VITE_API_URL: import.meta.env.VITE_API_URL,
-      MODE: import.meta.env.MODE,
-      DEV: import.meta.env.DEV
-    });
-  }, []);
-
-  // Fetch sessions when user, localUser, or manualUserId changes
   useEffect(() => {
     fetchSessions();
   }, [user, localUser, manualUserId]);
 
-  // Function to get the current user ID from either context or localStorage
   const getCurrentUserId = (): string | null => {
     console.log("Attempting to get current user ID");
     
@@ -132,39 +119,34 @@ export default function TrainerDashboard() {
     // Check local user state
     if (localUser) {
       if (localUser._id) {
-        console.log("Found _id in local user state:", localUser._id);
+        // console.log("Found _id in local user state:", localUser._id);
         return localUser._id;
       } else if (localUser.id) {
-        console.log("Found id in local user state:", localUser.id);
+        // console.log("Found id in local user state:", localUser.id);
         return localUser.id;
       } else {
-        console.log("Local user exists but has no _id or id field:", localUser);
+        // console.log("Local user exists but has no _id or id field:", localUser);
       }
     }
-    
-    // Check manual ID if set
     if (manualUserId) {
       console.log("Using manually set user ID:", manualUserId);
       return manualUserId;
     }
     
-    // Last attempt - try to get directly from localStorage
     try {
       const storedUserStr = localStorage.getItem('user');
       if (storedUserStr) {
-        console.log("Found user string in localStorage");
+
         const storedUser = JSON.parse(storedUserStr);
-        console.log("Parsed user from localStorage:", storedUser);
         
         if (storedUser) {
           if (storedUser._id) {
-            console.log("Found _id in localStorage user:", storedUser._id);
+            // console.log("Found _id in localStorage user:", storedUser._id);
             return storedUser._id;
           } else if (storedUser.id) {
-            console.log("Found id in localStorage user:", storedUser.id);
+            // console.log("Found id in localStorage user:", storedUser.id);
             return storedUser.id;
           } else {
-            console.log("localStorage user exists but has no _id or id field:", storedUser);
           }
         } else {
           console.log("Failed to parse valid user object from localStorage");
@@ -176,29 +158,22 @@ export default function TrainerDashboard() {
       console.error("Error retrieving user from localStorage:", e);
     }
     
-    console.log("Failed to find user ID from any source");
     return null;
   };
 
-  // Helper to check if auth context is fully loaded
   const isAuthReady = (): boolean => {
-    // If we're authenticated and have a user, auth is ready
     if (isAuthenticated && user && (user._id || user.id)) {
       return true;
     }
-    
-    // If we're not authenticated but have checked auth status (token is null, not undefined)
-    // then auth is also ready
+
     if (token === null) {
       return true;
     }
     
-    // If we have a user from localStorage, we can work with that
     if (localUser && (localUser._id || localUser.id)) {
       return true;
     }
     
-    // If we have a manual ID set, we're also ready to proceed
     if (manualUserId) {
       return true;
     }
@@ -213,32 +188,14 @@ export default function TrainerDashboard() {
     
     // Check if auth is ready before proceeding
     if (!isAuthReady()) {
-      console.log("Auth context not ready yet, trying to force load user", {
-        isAuthenticated,
-        hasUser: !!user,
-        userId: user?._id,
-        hasToken: !!token,
-        hasLocalUser: !!localUser,
-        authReady: isAuthReady()
-      });
       
       const result = forceInitUser();
-      console.log("Force init user result:", result);
       
       if (result.success) {
-        console.log("Successfully force loaded user:", result.user);
         
-        // Add a slight delay to give React state time to update
-        console.log("Waiting for React state to update...");
         await new Promise(resolve => setTimeout(resolve, 300));
         
-        // Log updated auth state
-        console.log("Auth state after force load:", {
-          isAuthenticated,
-          hasUser: !!user,
-          userId: user?._id || user?.id,
-          hasToken: !!token
-        });
+
       } else {
         console.error("Failed to load auth context");
         setError("Authentication is not ready. Please try logging in again or use the Debug options.");
@@ -248,38 +205,21 @@ export default function TrainerDashboard() {
       }
     }
     
-    // Debug various user ID sources
-    console.log("Debug user sources:", {
-      contextUser: user,
-      contextUserId: user?._id,
-      localUser: localUser,
-      localUserId: localUser?._id,
-      manualUserId: manualUserId,
-      localStorageUserRaw: localStorage.getItem('user'),
-      authReady: isAuthReady()
-    });
     
     try {
-      // Get current user ID using the helper function
       let trainerId = getCurrentUserId();
       
-      // If no trainerId found, try to force load user
       if (!trainerId) {
         console.log("No trainer ID found, trying to force load user");
         const result = forceInitUser();
-        if (result.success && result.user) {
-          console.log("Successfully force loaded user:", result.user);
-          
+        if (result.success && result.user) { 
           // Try using the directly returned user object first
           const directId = result.user._id || result.user.id;
           if (directId) {
             trainerId = directId;
-            console.log("Direct user ID from result:", trainerId);
           } else {
-            // If still no direct ID, wait and try getCurrentUserId again
             await new Promise(resolve => setTimeout(resolve, 100));
             trainerId = getCurrentUserId();
-            console.log("User ID after forced load + delay:", trainerId);
           }
         }
       }
@@ -293,32 +233,22 @@ export default function TrainerDashboard() {
         setShowManualIdInput(true); // Show manual ID input to help user
         return;
       }
-      
-      // Use the exact route that's defined in the backend
-      console.log(`Fetching sessions from: ${API_BASE_URL}/trainer/${trainerId}/sessions`);
       const response = await axios.get(`${API_BASE_URL}/trainer/${trainerId}/sessions`);
       
-      // Debug response details
-      console.log("Response status:", response.status);
-      console.log("Response headers:", response.headers);
-      console.log("Response data:", response.data);
-      
       if (response.data && response.data.sessions) {
-        console.log("Fetched sessions:", response.data.sessions);
-        // Log the first session to see its exact structure
+
         if (response.data.sessions.length > 0) {
           console.log("First session:", JSON.stringify(response.data.sessions[0], null, 2));
         }
         setSessions(response.data.sessions);
       } else if (Array.isArray(response.data)) {
-        console.log("Fetched sessions array:", response.data);
-        // Log the first session to see its exact structure
+
         if (response.data.length > 0) {
           console.log("First session:", JSON.stringify(response.data[0], null, 2));
         }
         setSessions(response.data);
       } else {
-        console.log("No sessions found in response:", response.data);
+        // console.log("No sessions found in response:", response.data);
         setSessions([]);
       }
     } catch (error: any) {
@@ -329,8 +259,6 @@ export default function TrainerDashboard() {
       let errorMsg = "Failed to load training sessions";
       
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         if (error.response.status === 404) {
           errorMsg = "The trainer sessions endpoint was not found. Please check the API configuration.";
         } else if (error.response.status === 401 || error.response.status === 403) {
@@ -427,7 +355,7 @@ export default function TrainerDashboard() {
         scheduledTime = new Date().toISOString();
       }
       
-      console.log("Using scheduled time:", scheduledTime);
+      // console.log("Using scheduled time:", scheduledTime);
     } catch (error) {
       console.error("Error processing date:", error);
       scheduledTime = new Date().toISOString();
@@ -476,25 +404,18 @@ export default function TrainerDashboard() {
   };
 
   const handleJoinSession = (meetingLink: string, session: TrainingSession) => {
-    console.log("Joining meeting with link:", meetingLink);
-    
-    // Check if the link is valid
     if (!meetingLink) {
       toast.error("Meeting link is not available. Please contact support.");
       return;
     }
     
-    // Get the room ID from the session or extract it from the meeting link
     let extractedRoomId: string | undefined = session.roomId;
     
-    // If roomId is not available in the session, try to extract it from the meetingLink
     if (!extractedRoomId && meetingLink) {
-      // Check if it's the new format or old format
       if (meetingLink.includes('/meeting/join/')) {
         const parts = meetingLink.split('/meeting/join/');
         extractedRoomId = parts[1];
       } else if (meetingLink.includes('roomID=')) {
-        // Try to handle old format
         try {
           const url = new URL(meetingLink);
           const params = new URLSearchParams(url.search);
@@ -503,51 +424,19 @@ export default function TrainerDashboard() {
             extractedRoomId = paramRoomId;
           }
         } catch (error) {
-          console.error("Error parsing meeting link:", error);
+          toast.error("Invalid meeting link format");
+          return;
         }
       }
     }
-    
-    // If we still don't have a room ID, generate one using timestamp
+
     if (!extractedRoomId) {
-      extractedRoomId = `meeting_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
-      console.log("Generated new room ID:", extractedRoomId);
+      toast.error("Could not determine meeting room ID");
+      return;
     }
-    
-    // Create the meeting URL based on the room ID
-    const meetingUrl = `${window.location.origin}/video-meeting/${extractedRoomId}`;
-    
-    // Show options for joining
-    toast.custom((t) => (
-      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg max-w-[90vw] sm:max-w-md">
-        <h3 className="text-base sm:text-lg font-semibold mb-3">How would you like to join?</h3>
-        <div className="space-y-3">
-          <button 
-            className="w-full bg-primary text-white py-2 px-4 rounded-md flex items-center justify-center"
-            onClick={() => {
-              toast.dismiss(t);
-              // Navigate directly to the meeting page using the video-meeting route
-              navigate(`/video-meeting/${extractedRoomId}`);
-            }}
-          >
-            <Video className="w-4 h-4 mr-2 flex-shrink-0" />
-            <span>Join in this app</span>
-          </button>
-          
-          <button 
-            className="w-full border border-primary text-primary py-2 px-4 rounded-md flex items-center justify-center"
-            onClick={() => {
-              toast.dismiss(t);
-              // Open meeting URL in new tab
-              window.open(meetingUrl, '_blank');
-            }}
-          >
-            <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0" />
-            <span>Open in new tab</span>
-          </button>
-        </div>
-      </div>
-    ), { duration: 10000 });
+
+    // Navigate directly to the video meeting page
+    navigate(`/video-meeting/${extractedRoomId}`);
   };
 
   // Function to mark a session as completed
@@ -616,14 +505,7 @@ export default function TrainerDashboard() {
         console.error("Invalid date:", dateString);
         return 'Invalid date';
       }
-      
-      // Log the original date string and parsed date for debugging
-      console.log("Formatting date:", {
-        original: dateString,
-        parsed: date,
-        isoString: date.toISOString(),
-        localString: date.toLocaleString()
-      });
+
       
     return date.toLocaleString('en-US', { 
       weekday: 'short',
@@ -639,7 +521,7 @@ export default function TrainerDashboard() {
     }
   };
 
-  // Calculate time remaining until meeting
+  //calculate time remaining
   const getTimeRemaining = (dateString: string) => {
     if (!dateString) return '';
     
@@ -659,10 +541,8 @@ export default function TrainerDashboard() {
     return `${diffDays} day${diffDays !== 1 ? 's' : ''} remaining`;
   };
 
-  // Get current date with time set to now (with 15 min rounding) as default
   const getDefaultScheduledTime = () => {
     const now = new Date();
-    // Round to next 15 minutes and add 1 hour (for future scheduling)
     const minutes = Math.ceil(now.getMinutes() / 15) * 15;
     now.setMinutes(minutes);
     now.setHours(now.getHours() + 1);
@@ -697,8 +577,7 @@ export default function TrainerDashboard() {
     if (result.success && result.user) {
       const userId = result.user._id || result.user.id;
       toast.success(`User loaded from localStorage with ID: ${userId}`);
-      console.log("User loaded:", result.user);
-      // Update localUser state if not already set
+
       if (!localUser) {
         setLocalUser(result.user);
       }
@@ -708,7 +587,7 @@ export default function TrainerDashboard() {
     }
   };
 
-  // Function to test both possible API endpoints
+
   const testEndpoints = async () => {
     if (!user || !user._id) {
       toast.error('No user ID available');
@@ -734,7 +613,6 @@ export default function TrainerDashboard() {
           
           if (response.status === 200) {
             toast.success(`Endpoint working: ${endpoint}`);
-            // If we have data, we can show it
             if (response.data) {
               if (response.data.sessions) {
                 console.log(`Found ${response.data.sessions.length} sessions in 'sessions' field`);
@@ -778,109 +656,8 @@ export default function TrainerDashboard() {
             {isLoading ? 'Loading...' : 'Refresh'}
           </Button>
           
-          {/* Test Endpoints button */}
-          {import.meta.env.DEV && (
-            <Button onClick={testEndpoints} disabled={isLoading} variant="outline">
-              <AlertCircle className="w-4 h-4 mr-2" />
-              Test Endpoints
-            </Button>
-          )}
-          
-          {/* Debug button - only show in development */}
-          {import.meta.env.DEV && (
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                const trainerId = getCurrentUserId();
-                const storedUser = localStorage.getItem('user');
-                
-                toast.info(
-                  <div className="space-y-2 text-xs max-w-md">
-                    <p><strong>API Base URL:</strong> {API_BASE_URL}</p>
-                    <p><strong>User ID:</strong> {trainerId || 'Not found'}</p>
-                    <p><strong>Is Authenticated:</strong> {isAuthenticated ? 'Yes' : 'No'}</p>
-                    <p><strong>Context User:</strong> {user ? 'Available' : 'Not available'}</p>
-                    <p><strong>Local User:</strong> {localUser ? 'Available' : 'Not available'}</p>
-                    <p><strong>User in localStorage:</strong> {storedUser ? 'Present' : 'Not found'}</p>
-                    <p><strong>Manual ID set:</strong> {manualUserId || 'None'}</p>
-                    <p><strong>Complete URL:</strong> {`${API_BASE_URL}/trainer/${trainerId}/sessions`}</p>
-                    <p><strong>VITE_API_URL:</strong> {import.meta.env.VITE_API_URL || 'Not set'}</p>
-                    <p><strong>Auth method:</strong> {token ? 'Token available' : 'No auth token'}</p>
-                    <p><strong>Context User info:</strong> {JSON.stringify({
-                      _id: user?._id,
-                      name: user?.name,
-                      role: user?.role,
-                    })}</p>
-                    <p><strong>Local User info:</strong> {JSON.stringify(localUser)}</p>
-                    <hr className="my-1" />
-                    <div className="flex gap-2">
-                      <button 
-                        className="bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleForceRefresh();
-                        }}
-                      >
-                        Force Refresh
-                      </button>
-                      <button
-                        className="bg-green-500 hover:bg-green-700 text-white text-xs py-1 px-2 rounded"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleManualIdInput();
-                        }}
-                      >
-                        {showManualIdInput ? 'Hide Manual ID' : 'Show Manual ID'}
-                      </button>
-                      <button
-                        className="bg-purple-500 hover:bg-purple-700 text-white text-xs py-1 px-2 rounded"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleForceLoadUser();
-                        }}
-                      >
-                        Force Load User
-                      </button>
-                    </div>
-                  </div>,
-                  {
-                    duration: 20000,
-                  }
-                );
-              }}
-              size="sm"
-            >
-              Debug Info
-        </Button>
-          )}
         </div>
       </div>
-      
-      {/* Manual ID input for debugging - only show in development */}
-      {showManualIdInput && import.meta.env.DEV && (
-        <div className="mb-4 p-4 border rounded-md bg-yellow-50">
-          <h3 className="text-sm font-medium mb-2">Debug Mode: Enter Trainer ID Manually</h3>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="text"
-              value={manualUserId}
-              onChange={(e) => setManualUserId(e.target.value)}
-              placeholder="Enter trainer ID..."
-              className="flex-1 px-3 py-2 border rounded-md text-sm"
-            />
-            <Button 
-              size="sm"
-              onClick={handleManualIdLoad}
-              className="w-full sm:w-auto"
-            >
-              Load Sessions
-            </Button>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            This is only for debugging purposes. Enter a valid MongoDB ObjectId to load sessions for that trainer.
-          </p>
-        </div>
-      )}
       
       {/* Error message */}
       {error && (
@@ -933,8 +710,7 @@ export default function TrainerDashboard() {
                         }
                       </div>
                     </div>
-                    
-                    {/* Only show join button if the session is within the joinable window */}
+                  
                     {session.meetingLink && session.scheduledTime && isSessionJoinable(session.scheduledTime) && (
                     <Button 
                       className="w-full" 
@@ -982,47 +758,6 @@ export default function TrainerDashboard() {
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Check Again
               </Button>
-              
-              {/* Debug section - only in development */}
-              {import.meta.env.DEV && (
-                <div className="mt-6 p-4 bg-gray-100 rounded-lg w-full max-w-md">
-                  <h4 className="text-sm font-semibold mb-2">Debug Information</h4>
-                  <div className="text-xs">
-                    <p>- API URL: {API_BASE_URL}</p>
-                    <p>- User ID: {getCurrentUserId() || 'Not found'}</p>
-                    <p>- Expected endpoint: {`${API_BASE_URL}/trainer/${getCurrentUserId()}/sessions`}</p>
-                    <p>- Auth state: {isAuthenticated ? 'Authenticated' : 'Not authenticated'}</p>
-                    <p>- Has Context User: {user ? 'Yes' : 'No'}</p>
-                    <p>- Has Local User: {localUser ? 'Yes' : 'No'}</p>
-                    <p>- Manual ID: {manualUserId || 'Not set'}</p>
-                    <p>- Has token: {token ? 'Yes' : 'No'}</p>
-                    <p className="mt-2">Check the browser console for more details.</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <button
-                        className="bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
-                        onClick={handleForceRefresh}
-                      >
-                        Force Refresh
-                      </button>
-                      <button
-                        className="bg-green-500 hover:bg-green-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
-                        onClick={toggleManualIdInput}
-                      >
-                        {showManualIdInput ? 'Hide Manual ID' : 'Show Manual ID'}
-                      </button>
-                      <button
-                        className="bg-purple-500 hover:bg-purple-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleForceLoadUser();
-                        }}
-                      >
-                        Force Load User
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
           <div className="overflow-x-auto pb-2">
@@ -1106,20 +841,6 @@ export default function TrainerDashboard() {
                             setIsAcceptDialogOpen(open);
                             if (open) {
                               setSelectedSession(session);
-                              
-                              // Log the session data for debugging
-                              console.log("Session selected for acceptance:", {
-                                sessionId: session._id,
-                                clientName: session.user?.name,
-                                scheduledTime: session.scheduledTime,
-                                date: session.date,
-                                time: session.time,
-                                formattedTime: session.scheduledTime ? 
-                                  formatDateTime(session.scheduledTime) : 
-                                  session.date && session.time ? 
-                                  `${session.date} at ${session.time}` : 
-                                  'Not scheduled'
-                              });
                             }
                           }}>
                           <DialogTrigger asChild>

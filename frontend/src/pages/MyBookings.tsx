@@ -72,7 +72,6 @@ const MyBookings = () => {
         console.log("Found _id in context user:", user._id);
         return user._id;
       } else if (user.id) {
-        console.log("Found id in context user:", user.id);
         return user.id;
       } else {
         console.log("Context user exists but has no _id or id field:", user);
@@ -82,23 +81,18 @@ const MyBookings = () => {
     // Check local user state
     if (localUser) {
       if (localUser._id) {
-        console.log("Found _id in local user state:", localUser._id);
         return localUser._id;
       } else if (localUser.id) {
-        console.log("Found id in local user state:", localUser.id);
         return localUser.id;
       } else {
         console.log("Local user exists but has no _id or id field:", localUser);
       }
     }
     
-    // Check manual ID if set
     if (manualUserId) {
-      console.log("Using manually set user ID:", manualUserId);
       return manualUserId;
     }
     
-    // Last attempt - try to get directly from localStorage
     try {
       const storedUserStr = localStorage.getItem('user');
       if (storedUserStr) {
@@ -136,13 +130,11 @@ const MyBookings = () => {
     if (userId) {
       fetchUserSessions(userId);
     } else {
-      console.warn("No user ID available. Attempting to force load user...");
       const result = forceInitUser();
       if (result.success && result.user) {
         console.log("Successfully force loaded user:", result.user);
         const userId = result.user._id || result.user.id;
         if (userId) {
-          console.log("Using force loaded user ID:", userId);
           fetchUserSessions(userId);
         } else {
           setError("User ID not found even after force loading. Please log in again or use the debug options.");
@@ -163,16 +155,6 @@ const MyBookings = () => {
     setError(null);
 
     let userIdToFetch = userId || getCurrentUserId();
-    
-    // Log all available information to help debug
-    console.log("=== SESSION FETCH DIAGNOSTICS ===");
-    console.log("Context user:", user);
-    console.log("Local user state:", localUser);
-    console.log("Manual user ID:", manualUserId);
-    console.log("User ID being used for fetch:", userIdToFetch);
-    console.log("LocalStorage user:", localStorage.getItem('user'));
-    console.log("Is authenticated via context:", !!user);
-    console.log("===============================");
     
     if (!userIdToFetch) {
       console.log("No user ID available for fetching sessions, trying force load");
@@ -205,18 +187,10 @@ const MyBookings = () => {
     }
 
     try {
-      // Debug info
-      console.log("Fetching sessions for user:", userIdToFetch);
-      console.log("API URL:", `${API_BASE_URL}/sessions/${userIdToFetch}`);
-      
-      // Make sure we're using the right API endpoint format per the backend
       const apiEndpoint = `${API_BASE_URL}/sessions/${userIdToFetch}`;
       console.log("Final API endpoint:", apiEndpoint);
       
       const response = await axios.get(apiEndpoint);
-      
-      // Debug response
-      console.log("API response:", response.data);
       
       if (response.data && response.data.sessions) {
         console.log("Sessions found:", response.data.sessions.length);
@@ -245,8 +219,6 @@ const MyBookings = () => {
         toast.error("Invalid session ID");
         return;
       }
-      
-      // Show a confirmation dialog
       if (!window.confirm("Are you sure you want to cancel this session?")) {
         return;
       }
@@ -257,7 +229,6 @@ const MyBookings = () => {
       
       if (response.data && response.data.session) {
         toast.success("Training session cancelled successfully");
-        // Update the local state
         setSessions(prevSessions => 
           prevSessions.map(session => 
             session._id === sessionId 
@@ -275,18 +246,14 @@ const MyBookings = () => {
   const handleJoinSession = (meetingLink: string, session: TrainingSession) => {
     console.log("Joining meeting with link:", meetingLink);
     
-    // Check if the link is valid
     if (!meetingLink) {
       toast.error("Meeting link is not available. Please contact support.");
       return;
     }
     
-    // Get the room ID from the session or extract it from the meeting link
     let extractedRoomId: string | undefined = session.roomId;
     
-    // If roomId is not available in the session, try to extract it from the meetingLink
     if (!extractedRoomId && meetingLink) {
-      // Check if it's the new format or old format
       if (meetingLink.includes('/meeting/join/')) {
         const parts = meetingLink.split('/meeting/join/');
         extractedRoomId = parts[1];
@@ -304,42 +271,37 @@ const MyBookings = () => {
         }
       }
     }
-
-    // If we still don't have a room ID, generate one using timestamp
     if (!extractedRoomId) {
       extractedRoomId = `meeting_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
       console.log("Generated new room ID:", extractedRoomId);
     }
 
-    // Create the meeting URL based on the room ID
     const meetingUrl = `${window.location.origin}/video-meeting/${extractedRoomId}`;
     
-    // Create a custom toast for the join options using react-hot-toast
     const toastId = toast.custom(
-      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg max-w-[90vw] sm:max-w-md">
+      <div className="bg-white dark:bg-black text-black dark:text-white p-4 sm:p-6 rounded-lg shadow-lg max-w-[90vw] sm:max-w-md">
         <h3 className="text-base sm:text-lg font-semibold mb-3">How would you like to join?</h3>
         <div className="space-y-3">
           <button 
-            className="w-full bg-primary text-white py-2 px-4 rounded-md flex items-center justify-center"
+            className="w-full bg-primary  dark:bg-blue-500 text-black dark:text-white py-2 px-4 rounded-md flex items-center justify-center"
             onClick={() => {
               toast.dismiss(toastId);
               // Navigate directly to the video meeting page
               navigate(`/video-meeting/${extractedRoomId}`);
             }}
           >
-            <Video className="w-4 h-4 mr-2 flex-shrink-0" />
+            <Video className=" bg-white  dark:bg-black text-black dark:text-white w-4 h-4 mr-2 flex-shrink-0" />
             <span>Join in this app</span>
           </button>
           
           <button 
-            className="w-full border border-primary text-primary py-2 px-4 rounded-md flex items-center justify-center"
+            className="w-full bg-white dark:bg-black dark:text-white border border-primary text-primary py-2 px-4 rounded-md flex items-center justify-center"
             onClick={() => {
               toast.dismiss(toastId);
-              // Open in new tab
               window.open(meetingUrl, '_blank');
             }}
           >
-            <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0" />
+            <ExternalLink className="bg-white dark:bg-black text-black dark:text-white w-4 h-4 mr-2 flex-shrink-0" />
             <span>Open in new tab</span>
           </button>
         </div>
@@ -352,31 +314,27 @@ const MyBookings = () => {
   const mapStatusForUI = (dbStatus: string): string => {
     const normalizedStatus = dbStatus.toUpperCase();
     
-    console.log("Mapping status:", normalizedStatus);
-    
     switch (normalizedStatus) {
       case 'PENDING':
-        return 'upcoming'; // Pending sessions are shown in upcoming
+        return 'upcoming';
       case 'ACCEPTED':
-        return 'upcoming'; // Accepted sessions are shown in upcoming until explicitly marked as completed
+        return 'upcoming'; 
       case 'COMPLETED':
-        return 'completed'; // Only sessions explicitly marked as completed
+        return 'completed'; 
       case 'REJECTED':
       case 'CANCELLED':
-        return 'cancelled'; // Both rejected and cancelled sessions are shown as cancelled
+        return 'cancelled';
       default:
         console.warn(`Unknown session status: ${normalizedStatus}, defaulting to '${dbStatus.toLowerCase()}'`);
         return dbStatus.toLowerCase();
     }
   };
 
-  // Filter sessions based on active tab and map between database status and UI status
   const filteredSessions = sessions.filter(session => {
     const uiStatus = mapStatusForUI(session.status);
     return uiStatus === activeTab;
   });
 
-  // Check if a session is joinable (within 15 minutes before start time until 1 hour after start)
   const isSessionJoinable = (scheduledTime: string) => {
     const sessionDate = parseISO(scheduledTime);
     const now = new Date();
@@ -414,7 +372,6 @@ const MyBookings = () => {
     }
   };
 
-  // Helper functions to handle button clicks
   const handleForceRefresh = () => {
     const userId = getCurrentUserId();
     if (userId) {
@@ -444,7 +401,7 @@ const MyBookings = () => {
       const userId = result.user._id || result.user.id;
       toast.success(`User loaded from localStorage with ID: ${userId}`);
       console.log("User loaded:", result.user);
-      // Update localUser state if not already set
+
       if (!localUser) {
         setLocalUser(result.user);
       }
@@ -472,127 +429,7 @@ const MyBookings = () => {
             </Button>
           ))}
         </div>
-        
-        {/* Debug button - only show in development */}
-        {import.meta.env.DEV && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="ml-auto"
-            onClick={() => {
-              // Get user from localStorage as backup
-              let localStorageUser = null;
-              try {
-                const userStr = localStorage.getItem('user');
-                if (userStr) {
-                  localStorageUser = JSON.parse(userStr);
-                }
-              } catch (e) {
-                console.error("Error parsing user from localStorage:", e);
-              }
-              
-              // Use custom toast instead of toast.info
-              toast.custom(
-                <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg space-y-2 text-xs max-w-[90vw] sm:max-w-md">
-                  <p><strong>Auth Info:</strong></p>
-                  <p>User from context: {user ? 'Available' : 'Not available'}</p>
-                  <p>User ID: {user?._id || 'Not found'}</p>
-                  <p>User in localStorage: {localStorageUser ? 'Found' : 'Not found'}</p>
-                  <p>localStorage User ID: {localStorageUser?._id || 'N/A'}</p>
-                  <p>Current effective ID: {getCurrentUserId() || 'None'}</p>
-                  <p>Manual ID set: {manualUserId || 'None'}</p>
-                  
-                  <hr className="my-2" />
-                  
-                  <p><strong>Session Info:</strong></p>
-                  <p>Total sessions: {sessions.length}</p>
-                  <p>Filtered sessions: {filteredSessions.length}</p>
-                  <p>Active tab: {activeTab}</p>
-                  {sessions.length > 0 && (
-                    <>
-                      <p className="mt-1"><strong>Raw Session Status Values:</strong></p>
-                      <ul className="max-h-20 overflow-y-auto">
-                        {sessions.map((session, idx) => (
-                          <li key={idx}>
-                            #{idx + 1}: {session.status} → UI: {mapStatusForUI(session.status)}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-                  
-                  <hr className="my-2" />
-                  
-                  <p><strong>API Info:</strong></p>
-                  <p>API URL: {API_BASE_URL}</p>
-                  <p>Endpoint: {`${API_BASE_URL}/sessions/${getCurrentUserId()}`}</p>
-                  
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <button 
-                      className="bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleForceRefresh();
-                      }}
-                    >
-                      Force Refresh
-                    </button>
-                    
-                    <button 
-                      className="bg-green-500 hover:bg-green-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleManualIdInput();
-                      }}
-                    >
-                      {showManualIdInput ? 'Hide Manual ID' : 'Show Manual ID'}
-                    </button>
-                    
-                    <button
-                      className="bg-purple-500 hover:bg-purple-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleForceLoadUser();
-                      }}
-                    >
-                      Force Load User
-                    </button>
-                  </div>
-                </div>,
-                { duration: 20000 }
-              );
-            }}
-          >
-            Debug Info
-          </Button>
-        )}
       </div>
-
-      {/* Manual ID input for debugging */}
-      {showManualIdInput && import.meta.env.DEV && (
-        <div className="mb-4 p-4 border rounded-md bg-yellow-50">
-          <h3 className="text-sm font-medium mb-2">Debug Mode: Enter User ID Manually</h3>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="text"
-              value={manualUserId}
-              onChange={(e) => setManualUserId(e.target.value)}
-              placeholder="Enter user ID..."
-              className="flex-1 px-3 py-2 border rounded-md text-sm"
-            />
-            <Button 
-              size="sm"
-              onClick={handleManualIdLoad}
-              className="w-full sm:w-auto"
-            >
-              Load Sessions
-            </Button>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            This is only for debugging purposes. Enter a valid MongoDB ObjectId to load sessions for that user.
-          </p>
-        </div>
-      )}
 
       {/* Loading State */}
       {loading && (
@@ -652,11 +489,6 @@ const MyBookings = () => {
                         {format(parseISO(session.scheduledTime), "h:mm a")} - {session.duration || 60} minutes
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      Specialization: {session.trainer.specialization}
-                    </p>
-                    
-                    {/* Join Button - only show if session is upcoming and within time window */}
                     {mapStatusForUI(session.status) === "upcoming" && isSessionJoinable(session.scheduledTime) && (
                       <>
                         <Button
@@ -666,17 +498,6 @@ const MyBookings = () => {
                           <Video className="w-4 h-4 mr-2" />
                           Join Session
                         </Button>
-                        
-                        {/* Meeting link debugging info - only in development */}
-                        {import.meta.env.DEV && (
-                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs overflow-auto max-h-20">
-                            <p className="font-semibold mb-1">Debug info:</p>
-                            <p>DB Status: {session.status}</p>
-                            <p>UI Status: {mapStatusForUI(session.status)}</p>
-                            <p className="font-semibold mt-1 mb-1">Meeting link:</p>
-                            <code className="break-all">{session.meetingLink}</code>
-                          </div>
-                        )}
                       </>
                     )}
                     
