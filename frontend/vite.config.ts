@@ -105,44 +105,6 @@ export default defineConfig(({ mode }) => {
           secure: false,
         }
       }
-    },
-    build: {
-      // Increase chunk size warning limit
-      chunkSizeWarningLimit: 1000,
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            // Split vendor dependencies into separate chunks
-            'vendor': [
-              'react',
-              'react-dom',
-              'react-router-dom',
-              '@radix-ui/react-dialog',
-              '@radix-ui/react-dropdown-menu',
-              '@radix-ui/react-label',
-              '@radix-ui/react-select',
-              '@radix-ui/react-slot',
-              '@radix-ui/react-tabs',
-              '@radix-ui/react-toast',
-              'class-variance-authority',
-              'clsx',
-              'lucide-react',
-              'react-hot-toast',
-              'tailwind-merge',
-              'tailwindcss-animate',
-              'zod'
-            ],
-            // Split UI components into a separate chunk
-            'ui': ['@/components/ui'],
-            // Split video meeting related code into a separate chunk
-            'video': ['@/components/VideoMeeting'],
-            // Split workout related code into a separate chunk
-            'workout': ['@/components/Workout'],
-            // Split meal plan related code into a separate chunk
-            'meal': ['@/components/MealPlan']
-          }
-        }
-      }
     }
   }
 }) 
