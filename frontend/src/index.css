@@ -136,21 +136,50 @@
 
 /* Custom Scrollbar Styles */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 6px;
-  border: 3px solid var(--scrollbar-track);
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode scrollbars */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Mobile-friendly scrollbars */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  
+  /* Better table scrolling on mobile */
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 3px;
+  }
 }
 
 /* Firefox scrollbar styles */
@@ -163,4 +192,26 @@
 @supports not (scrollbar-width: thin) {
   /* Additional styling can be added here if needed */
   /* The webkit styles already provide fallback for most browsers */
+}
+
+/* ZegoCloud video meeting styles */
+#zego-container {
+  background-color: #1a1a1a;
+}
+
+#zego-container video {
+  object-fit: cover !important;
+}
+
+/* Fix any ZegoCloud UI positioning issues */
+.zegocloud-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Ensure ZegoCloud UI adapts to mobile screens */
+@media (max-width: 640px) {
+  #zego-container {
+    height: calc(100vh - 60px) !important;
+  }
 }

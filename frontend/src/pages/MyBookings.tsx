@@ -36,6 +36,7 @@ interface TrainingSession {
   duration: number;
   status: string;
   meetingLink: string;
+  roomId?: string;
 }
 
 const MyBookings = () => {
@@ -280,21 +281,55 @@ const MyBookings = () => {
       return;
     }
     
+    // Get the room ID from the session or extract it from the meeting link
+    let extractedRoomId: string | undefined = session.roomId;
+    
+    // If roomId is not available in the session, try to extract it from the meetingLink
+    if (!extractedRoomId && meetingLink) {
+      // Check if it's the new format or old format
+      if (meetingLink.includes('/meeting/join/')) {
+        const parts = meetingLink.split('/meeting/join/');
+        extractedRoomId = parts[1];
+      } else if (meetingLink.includes('roomID=')) {
+        // Try to handle old format
+        try {
+          const url = new URL(meetingLink);
+          const params = new URLSearchParams(url.search);
+          const paramRoomId = params.get('roomID');
+          if (paramRoomId) {
+            extractedRoomId = paramRoomId;
+          }
+        } catch (error) {
+          console.error("Error parsing meeting link:", error);
+        }
+      }
+    }
+
+    // Create the meeting URL based on the room ID
+    const meetingUrl = extractedRoomId 
+      ? `${window.location.origin}/meeting/join/${extractedRoomId}`
+      : meetingLink;
+    
     // Create a custom toast for the join options using react-hot-toast
     const toastId = toast.custom(
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h3 className="text-lg font-semibold mb-3">How would you like to join?</h3>
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg max-w-[90vw] sm:max-w-md">
+        <h3 className="text-base sm:text-lg font-semibold mb-3">How would you like to join?</h3>
         <div className="space-y-3">
           <button 
             className="w-full bg-primary text-white py-2 px-4 rounded-md flex items-center justify-center"
             onClick={() => {
               toast.dismiss(toastId);
-              // Navigate to embedded meeting component
-              navigate(`/meeting-session?link=${encodeURIComponent(meetingLink)}&sessionId=${session._id}&trainerName=${encodeURIComponent(session.trainer.name)}`);
+              // Navigate directly to the meeting page if we have a room ID, otherwise use the old approach
+              if (extractedRoomId) {
+                navigate(`/meeting/join/${extractedRoomId}`);
+              } else {
+                // Fallback to the old method
+                navigate(`/meeting-session?link=${encodeURIComponent(meetingLink)}&sessionId=${session._id}&trainerName=${encodeURIComponent(session.trainer.name)}`);
+              }
             }}
           >
-            <Video className="w-4 h-4 mr-2" />
-            Join in this app
+            <Video className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span>Join in this app</span>
           </button>
           
           <button 
@@ -302,11 +337,11 @@ const MyBookings = () => {
             onClick={() => {
               toast.dismiss(toastId);
               // Open in new tab
-              window.open(meetingLink, '_blank');
+              window.open(meetingUrl, '_blank');
             }}
           >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Open in new tab
+            <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span>Open in new tab</span>
           </button>
         </div>
       </div>,
@@ -425,14 +460,14 @@ const MyBookings = () => {
       <h1 className="text-3xl font-bold mb-8">My Training Sessions</h1>
 
       {/* Tabs */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           {["upcoming", "completed", "cancelled"].map((tab) => (
             <Button
               key={tab}
               variant={activeTab === tab ? "default" : "outline"}
               onClick={() => setActiveTab(tab as typeof activeTab)}
-              className="capitalize"
+              className="capitalize flex-1 sm:flex-none"
             >
               {tab}
             </Button>
@@ -444,6 +479,7 @@ const MyBookings = () => {
           <Button 
             variant="outline" 
             size="sm"
+            className="ml-auto"
             onClick={() => {
               // Get user from localStorage as backup
               let localStorageUser = null;
@@ -458,7 +494,7 @@ const MyBookings = () => {
               
               // Use custom toast instead of toast.info
               toast.custom(
-                <div className="bg-white p-6 rounded-lg shadow-lg space-y-2 text-xs max-w-md">
+                <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg space-y-2 text-xs max-w-[90vw] sm:max-w-md">
                   <p><strong>Auth Info:</strong></p>
                   <p>User from context: {user ? 'Available' : 'Not available'}</p>
                   <p>User ID: {user?._id || 'Not found'}</p>
@@ -476,7 +512,7 @@ const MyBookings = () => {
                   {sessions.length > 0 && (
                     <>
                       <p className="mt-1"><strong>Raw Session Status Values:</strong></p>
-                      <ul>
+                      <ul className="max-h-20 overflow-y-auto">
                         {sessions.map((session, idx) => (
                           <li key={idx}>
                             #{idx + 1}: {session.status} → UI: {mapStatusForUI(session.status)}
@@ -492,35 +528,37 @@ const MyBookings = () => {
                   <p>API URL: {API_BASE_URL}</p>
                   <p>Endpoint: {`${API_BASE_URL}/sessions/${getCurrentUserId()}`}</p>
                   
-                  <button 
-                    className="bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded mr-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleForceRefresh();
-                    }}
-                  >
-                    Force Refresh
-                  </button>
-                  
-                  <button 
-                    className="bg-green-500 hover:bg-green-700 text-white text-xs py-1 px-2 rounded mr-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleManualIdInput();
-                    }}
-                  >
-                    {showManualIdInput ? 'Hide Manual ID' : 'Show Manual ID'}
-                  </button>
-                  
-                  <button
-                    className="bg-purple-500 hover:bg-purple-700 text-white text-xs py-1 px-2 rounded"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleForceLoadUser();
-                    }}
-                  >
-                    Force Load User
-                  </button>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <button 
+                      className="bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleForceRefresh();
+                      }}
+                    >
+                      Force Refresh
+                    </button>
+                    
+                    <button 
+                      className="bg-green-500 hover:bg-green-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleManualIdInput();
+                      }}
+                    >
+                      {showManualIdInput ? 'Hide Manual ID' : 'Show Manual ID'}
+                    </button>
+                    
+                    <button
+                      className="bg-purple-500 hover:bg-purple-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleForceLoadUser();
+                      }}
+                    >
+                      Force Load User
+                    </button>
+                  </div>
                 </div>,
                 { duration: 20000 }
               );
@@ -535,7 +573,7 @@ const MyBookings = () => {
       {showManualIdInput && import.meta.env.DEV && (
         <div className="mb-4 p-4 border rounded-md bg-yellow-50">
           <h3 className="text-sm font-medium mb-2">Debug Mode: Enter User ID Manually</h3>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               value={manualUserId}
@@ -546,6 +584,7 @@ const MyBookings = () => {
             <Button 
               size="sm"
               onClick={handleManualIdLoad}
+              className="w-full sm:w-auto"
             >
               Load Sessions
             </Button>
@@ -581,7 +620,7 @@ const MyBookings = () => {
 
       {/* Bookings Grid */}
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredSessions.map((session) => (
             <motion.div
               key={session._id}
@@ -590,31 +629,31 @@ const MyBookings = () => {
               transition={{ duration: 0.3 }}
             >
               <Card className="h-full">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="flex items-center gap-2">
-                      <User className="w-5 h-5" />
-                      {session.trainer.name}
+                <CardHeader className="p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <User className="w-5 h-5 flex-shrink-0" />
+                      <span className="truncate">{session.trainer.name}</span>
                     </CardTitle>
-                    <Badge className={`${getStatusColor(session.status)}`}>
+                    <Badge className={`${getStatusColor(session.status)} w-fit`}>
                       {getStatusIcon(mapStatusForUI(session.status))}
                       <span className="ml-1 capitalize">{mapStatusForUI(session.status)}</span>
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3 sm:p-4">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      <span>{format(parseISO(session.scheduledTime), "PPP")}</span>
+                      <Calendar className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-sm">{format(parseISO(session.scheduledTime), "PPP")}</span>
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      <span>
+                      <Clock className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-sm">
                         {format(parseISO(session.scheduledTime), "h:mm a")} - {session.duration || 60} minutes
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
                       Specialization: {session.trainer.specialization}
                     </p>
                     
@@ -631,7 +670,7 @@ const MyBookings = () => {
                         
                         {/* Meeting link debugging info - only in development */}
                         {import.meta.env.DEV && (
-                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs overflow-auto">
+                          <div className="mt-2 p-2 bg-gray-50 rounded text-xs overflow-auto max-h-20">
                             <p className="font-semibold mb-1">Debug info:</p>
                             <p>DB Status: {session.status}</p>
                             <p>UI Status: {mapStatusForUI(session.status)}</p>

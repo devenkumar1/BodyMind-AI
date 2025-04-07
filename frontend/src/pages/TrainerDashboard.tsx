@@ -47,6 +47,7 @@ interface TrainingSession {
   meetingLink?: string;
   date?: string;
   time?: string;
+  roomId?: string;
 }
 
 export default function TrainerDashboard() {
@@ -483,33 +484,67 @@ export default function TrainerDashboard() {
       return;
     }
     
+    // Get the room ID from the session or extract it from the meeting link
+    let extractedRoomId: string | undefined = session.roomId;
+    
+    // If roomId is not available in the session, try to extract it from the meetingLink
+    if (!extractedRoomId && meetingLink) {
+      // Check if it's the new format or old format
+      if (meetingLink.includes('/meeting/join/')) {
+        const parts = meetingLink.split('/meeting/join/');
+        extractedRoomId = parts[1];
+      } else if (meetingLink.includes('roomID=')) {
+        // Try to handle old format
+        try {
+          const url = new URL(meetingLink);
+          const params = new URLSearchParams(url.search);
+          const paramRoomId = params.get('roomID');
+          if (paramRoomId) {
+            extractedRoomId = paramRoomId;
+          }
+        } catch (error) {
+          console.error("Error parsing meeting link:", error);
+        }
+      }
+    }
+    
+    // Create the meeting URL based on the room ID
+    const meetingUrl = extractedRoomId 
+      ? `${window.location.origin}/meeting/join/${extractedRoomId}`
+      : meetingLink;
+    
     // Show options for joining
     toast.custom((t) => (
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h3 className="text-lg font-semibold mb-3">How would you like to join?</h3>
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg max-w-[90vw] sm:max-w-md">
+        <h3 className="text-base sm:text-lg font-semibold mb-3">How would you like to join?</h3>
         <div className="space-y-3">
           <button 
             className="w-full bg-primary text-white py-2 px-4 rounded-md flex items-center justify-center"
             onClick={() => {
               toast.dismiss(t);
-              // Navigate to embedded meeting component
-              navigate(`/meeting-session?link=${encodeURIComponent(meetingLink)}&sessionId=${session._id}&trainerName=${encodeURIComponent(session.user.name)}`);
+              // Navigate directly to the meeting page if we have a room ID, otherwise use the old approach
+              if (extractedRoomId) {
+                navigate(`/meeting/join/${extractedRoomId}`);
+              } else {
+                // Fallback to the old method
+                navigate(`/meeting-session?link=${encodeURIComponent(meetingLink)}&sessionId=${session._id}&trainerName=${encodeURIComponent(session.user.name)}`);
+              }
             }}
           >
-            <Video className="w-4 h-4 mr-2" />
-            Join in this app
+            <Video className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span>Join in this app</span>
           </button>
           
           <button 
             className="w-full border border-primary text-primary py-2 px-4 rounded-md flex items-center justify-center"
             onClick={() => {
               toast.dismiss(t);
-              // Open in new tab
-              window.open(meetingLink, '_blank');
+              // Open meeting URL in new tab
+              window.open(meetingUrl, '_blank');
             }}
           >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Open in new tab
+            <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span>Open in new tab</span>
           </button>
         </div>
       </div>
@@ -735,13 +770,13 @@ export default function TrainerDashboard() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Trainer Dashboard</h1>
-        <div className="flex gap-2">
-          <Button onClick={fetchSessions} disabled={isLoading}>
+    <div className="container mx-auto py-8 px-4 sm:px-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Trainer Dashboard</h1>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Button onClick={fetchSessions} disabled={isLoading} className="w-full sm:w-auto">
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            {isLoading ? 'Loading...' : 'Refresh Sessions'}
+            {isLoading ? 'Loading...' : 'Refresh'}
           </Button>
           
           {/* Test Endpoints button */}
@@ -826,7 +861,7 @@ export default function TrainerDashboard() {
       {showManualIdInput && import.meta.env.DEV && (
         <div className="mb-4 p-4 border rounded-md bg-yellow-50">
           <h3 className="text-sm font-medium mb-2">Debug Mode: Enter Trainer ID Manually</h3>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               value={manualUserId}
@@ -837,6 +872,7 @@ export default function TrainerDashboard() {
             <Button 
               size="sm"
               onClick={handleManualIdLoad}
+              className="w-full sm:w-auto"
             >
               Load Sessions
             </Button>
@@ -871,19 +907,19 @@ export default function TrainerDashboard() {
               Upcoming Meetings
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4">
+          <CardContent className="p-2 sm:p-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {upcomingSessions.map((session) => (
                 <Card key={session._id} className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
-                  <CardHeader className="p-4 bg-muted/50">
-                    <CardTitle className="text-base flex justify-between items-center">
-                      <span>Session with {session.user.name}</span>
-                      <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                  <CardHeader className="p-3 sm:p-4 bg-muted/50">
+                    <CardTitle className="text-sm sm:text-base flex justify-between items-center">
+                      <span className="truncate mr-2">Session with {session.user.name}</span>
+                      <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full whitespace-nowrap">
                         {session.duration || 60} min
                       </span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4 space-y-3">
+                  <CardContent className="p-3 sm:p-4 space-y-3">
                     <div className="flex items-start gap-2">
                       <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
                       <div>
@@ -962,21 +998,21 @@ export default function TrainerDashboard() {
                     <p>- Manual ID: {manualUserId || 'Not set'}</p>
                     <p>- Has token: {token ? 'Yes' : 'No'}</p>
                     <p className="mt-2">Check the browser console for more details.</p>
-                    <div className="mt-2 flex gap-2">
+                    <div className="mt-2 flex flex-wrap gap-2">
                       <button
-                        className="bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded"
+                        className="bg-blue-500 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
                         onClick={handleForceRefresh}
                       >
                         Force Refresh
                       </button>
                       <button
-                        className="bg-green-500 hover:bg-green-700 text-white text-xs py-1 px-2 rounded"
+                        className="bg-green-500 hover:bg-green-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
                         onClick={toggleManualIdInput}
                       >
                         {showManualIdInput ? 'Hide Manual ID' : 'Show Manual ID'}
                       </button>
                       <button
-                        className="bg-purple-500 hover:bg-purple-700 text-white text-xs py-1 px-2 rounded"
+                        className="bg-purple-500 hover:bg-purple-700 text-white text-xs py-1 px-2 rounded flex-1 sm:flex-none"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleForceLoadUser();
@@ -990,28 +1026,32 @@ export default function TrainerDashboard() {
               )}
             </div>
           ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
+          <div className="overflow-x-auto pb-2">
+            <Table responsiveMode="scroll">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="hidden sm:table-cell">User</TableHead>
                   <TableHead>Scheduled Time</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Meeting</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sessions.map((session) => (
-                <TableRow key={session._id}>
-                  <TableCell>
-                    <div>
+                  <TableHead className="hidden sm:table-cell">Duration</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden md:table-cell">Meeting</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sessions.map((session) => (
+                  <TableRow key={session._id}>
+                    <TableCell className="hidden sm:table-cell">
+                      <div>
                         <div className="font-medium">{session.user?.name || 'Unknown User'}</div>
                         <div className="text-sm text-muted-foreground">{session.user?.email || 'No email'}</div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div>
+                      <div className="min-w-[140px]">
+                        {/* Show user name on mobile */}
+                        <div className="font-medium sm:hidden mb-1">{session.user?.name || 'Unknown User'}</div>
+                        
                         {session.scheduledTime ? (
                           <>
                             <div className="font-medium">{formatDateTime(session.scheduledTime)}</div>
@@ -1022,30 +1062,47 @@ export default function TrainerDashboard() {
                         ) : (
                           <div className="text-gray-500">Not scheduled</div>
                         )}
-                    </div>
-                  </TableCell>
-                    <TableCell>{session.duration || 60} min</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(session.status)}`}>
+                        {/* Show duration on mobile */}
+                        <div className="text-xs text-muted-foreground sm:hidden mt-1">{session.duration || 60} min</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">{session.duration || 60} min</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(session.status)}`}>
                         {session.status.toUpperCase()}
-                    </span>
-                  </TableCell>
-                  <TableCell>
+                      </span>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {session.meetingLink && session.status.toUpperCase() === 'ACCEPTED' && isSessionJoinable(session.scheduledTime || '') && (
-                      <Button
-                        variant="outline"
-                        size="sm"
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleJoinSession(session.meetingLink || '', session)}
-                        className="flex items-center"
-                      >
-                        <Video className="w-4 h-4 mr-1" />
-                        Join Meeting
-                      </Button>
-                    )}
-                  </TableCell>
-                  <TableCell>
+                          className="flex items-center"
+                        >
+                          <Video className="w-4 h-4 mr-1" />
+                          Join
+                        </Button>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {/* Show meeting button on mobile if it's joinable */}
+                      {session.meetingLink && session.status.toUpperCase() === 'ACCEPTED' && isSessionJoinable(session.scheduledTime || '') && (
+                        <div className="md:hidden mb-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleJoinSession(session.meetingLink || '', session)}
+                            className="w-full flex items-center justify-center"
+                          >
+                            <Video className="w-4 h-4 mr-1" />
+                            Join
+                          </Button>
+                        </div>
+                      )}
+                      
                       {session.status.toUpperCase() === 'PENDING' && (
-                      <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2 justify-end">
                           <Dialog open={isAcceptDialogOpen && selectedSession?._id === session._id} onOpenChange={(open) => {
                             setIsAcceptDialogOpen(open);
                             if (open) {
@@ -1070,23 +1127,24 @@ export default function TrainerDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
+                              className="w-full sm:w-auto whitespace-normal sm:whitespace-nowrap text-xs sm:text-sm"
                             >
-                              <CheckCircle2 className="w-4 h-4 mr-1" />
-                                Accept Session at Client's Requested Time
+                              <CheckCircle2 className="w-4 h-4 mr-1 flex-shrink-0" />
+                              <span className="truncate">Accept</span>
                             </Button>
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
                               <DialogTitle>Accept Training Session</DialogTitle>
                             </DialogHeader>
-                            <div className="space-y-4">
+                            <div className="space-y-4 mt-2">
                               <div className="space-y-2">
                                   <div className="flex flex-col gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
                                     <div className="flex items-start gap-2">
-                                      <AlertCircle className="w-4 h-4 text-amber-600 mt-1" />
+                                      <AlertCircle className="w-4 h-4 text-amber-600 mt-1 flex-shrink-0" />
                                       <div>
                                         <p className="text-sm font-medium text-amber-800">Client's Requested Time:</p>
-                                        <p className="text-sm">
+                                        <p className="text-sm break-words">
                                           {session.scheduledTime ? formatDateTime(session.scheduledTime) : 
                                            session.date && session.time ? `${session.date} at ${session.time}` :
                                            'No specific time requested'}
@@ -1095,14 +1153,14 @@ export default function TrainerDashboard() {
                                     </div>
                                   </div>
                                   
-                                <div className="flex items-center gap-2 mb-2 p-2 bg-primary/10 rounded text-sm">
-                                  <AlertCircle className="w-4 h-4 text-primary" />
+                                <div className="flex items-start gap-2 p-2 bg-primary/10 rounded text-sm">
+                                  <AlertCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                                   <p>A ZegoCloud video meeting will be automatically created when you accept this session.</p>
                                 </div>
                               </div>
                               <div className="space-y-2">
                                   <Label htmlFor="scheduledTime">Scheduled Time (Cannot be changed)</Label>
-                                  <div className="border rounded-md p-2.5 bg-gray-50 text-gray-800">
+                                  <div className="border rounded-md p-2.5 bg-gray-50 text-gray-800 text-sm">
                                     {session.scheduledTime ? formatDateTime(session.scheduledTime) : 
                                      session.date && session.time ? `${session.date} at ${session.time}` :
                                      'No specific time requested'}
@@ -1111,7 +1169,7 @@ export default function TrainerDashboard() {
                                     <p className="text-muted-foreground mt-2">You are accepting this session at the time requested by the client.</p>
                                   </div>
                               </div>
-                              <Button onClick={() => handleAcceptSession(session)}>Confirm Acceptance</Button>
+                              <Button onClick={() => handleAcceptSession(session)} className="w-full">Confirm Acceptance</Button>
                             </div>
                           </DialogContent>
                         </Dialog>
@@ -1119,9 +1177,10 @@ export default function TrainerDashboard() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleRejectSession(session._id)}
+                          className="w-full sm:w-auto whitespace-normal sm:whitespace-nowrap text-xs sm:text-sm"
                         >
-                          <XCircle className="w-4 h-4 mr-1" />
-                          Reject
+                          <XCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                          <span className="truncate">Reject</span>
                         </Button>
                       </div>
                     )}
@@ -1131,17 +1190,18 @@ export default function TrainerDashboard() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleCompleteSession(session._id)}
-                          className="flex items-center"
+                          className="flex items-center w-full sm:w-auto whitespace-normal sm:whitespace-nowrap text-xs sm:text-sm"
                         >
-                          <CheckCircle2 className="w-4 h-4 mr-1" />
-                          Mark as Completed
+                          <CheckCircle2 className="w-4 h-4 mr-1 flex-shrink-0" />
+                          <span className="truncate">Mark as Completed</span>
                         </Button>
                     )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           )}
         </CardContent>
       </Card>
