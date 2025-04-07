@@ -508,10 +508,14 @@ export default function TrainerDashboard() {
       }
     }
     
+    // If we still don't have a room ID, generate one using timestamp
+    if (!extractedRoomId) {
+      extractedRoomId = `meeting_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+      console.log("Generated new room ID:", extractedRoomId);
+    }
+    
     // Create the meeting URL based on the room ID
-    const meetingUrl = extractedRoomId 
-      ? `${window.location.origin}/meeting/join/${extractedRoomId}`
-      : meetingLink;
+    const meetingUrl = `${window.location.origin}/video-meeting/${extractedRoomId}`;
     
     // Show options for joining
     toast.custom((t) => (
@@ -522,13 +526,8 @@ export default function TrainerDashboard() {
             className="w-full bg-primary text-white py-2 px-4 rounded-md flex items-center justify-center"
             onClick={() => {
               toast.dismiss(t);
-              // Navigate directly to the meeting page if we have a room ID, otherwise use the old approach
-              if (extractedRoomId) {
-                navigate(`/meeting/join/${extractedRoomId}`);
-              } else {
-                // Fallback to the old method
-                navigate(`/meeting-session?link=${encodeURIComponent(meetingLink)}&sessionId=${session._id}&trainerName=${encodeURIComponent(session.user.name)}`);
-              }
+              // Navigate directly to the meeting page using the video-meeting route
+              navigate(`/video-meeting/${extractedRoomId}`);
             }}
           >
             <Video className="w-4 h-4 mr-2 flex-shrink-0" />

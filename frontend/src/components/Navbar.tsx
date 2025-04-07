@@ -100,10 +100,6 @@ export function Navbar() {
     ...(import.meta.env.DEV ? [{ path: '/test-meeting', label: 'Test Meeting', icon: <Video className="w-4 h-4 mr-2" /> }] : [])
   ];
 
-  const dashboardNavItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: <BarChart3 className="w-4 h-4 mr-2" /> }
-  ];
-
   // Role-specific navigation items
   const adminNavItems = [
     { path: '/admin/dashboard', label: 'Admin Dashboard', icon: <Users className="w-4 h-4 mr-2" /> }
@@ -174,16 +170,6 @@ export function Navbar() {
           {isAuthenticated ? (
             <NavigationMenu>
               <NavigationMenuList className="gap-6">
-                {/* Dashboard */}
-                {dashboardNavItems.map((item) => (
-                  <NavigationMenuItem key={item.path}>
-                    <Link to={item.path} className="flex items-center">
-                      {item.icon}
-                      {item.label}
-                    </Link>
-                  </NavigationMenuItem>
-                ))}
-
                 {/* Workout Section */}
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="flex items-center">
@@ -386,18 +372,6 @@ export function Navbar() {
                         <div className="text-sm text-muted-foreground">{user?.email}</div>
                       </div>
                     </div>
-
-                    {/* Dashboard */}
-                    {dashboardNavItems.map((item) => (
-                      <Link 
-                        key={item.path}
-                        to={item.path}
-                        className="flex items-center p-2 rounded-md hover:bg-accent"
-                      >
-                        {item.icon}
-                        <span className="ml-2">{item.label}</span>
-                      </Link>
-                    ))}
 
                     {/* Workout Section */}
                     <div className="space-y-2">

@@ -23,7 +23,6 @@ import TrainerDashboard from './pages/TrainerDashboard';
 import VideoMeeting from './pages/VideoMeeting';
 import MeetingSession from './components/MeetingSession';
 import TestMeeting from './pages/TestMeeting';
-import VideoTest from './pages/VideoTest';
 import { Input } from '@/components/ui/Input';
 
 export default function AppRoutes() {
@@ -50,7 +49,6 @@ export default function AppRoutes() {
           
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/home" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/training" element={<Training />} />
@@ -65,8 +63,6 @@ export default function AppRoutes() {
             <Route path="/meeting/join/:roomId" element={<VideoMeeting />} />
             <Route path="/meeting-session" element={<MeetingSession />} />
             <Route path="/test-meeting" element={<TestMeeting />} />
-            <Route path="/video-test/:roomId" element={<VideoTest />} />
-            <Route path="/video-test" element={<VideoTest />} />
             
             {/* Role-specific routes */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />

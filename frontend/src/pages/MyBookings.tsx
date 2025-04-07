@@ -305,10 +305,14 @@ const MyBookings = () => {
       }
     }
 
+    // If we still don't have a room ID, generate one using timestamp
+    if (!extractedRoomId) {
+      extractedRoomId = `meeting_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+      console.log("Generated new room ID:", extractedRoomId);
+    }
+
     // Create the meeting URL based on the room ID
-    const meetingUrl = extractedRoomId 
-      ? `${window.location.origin}/meeting/join/${extractedRoomId}`
-      : meetingLink;
+    const meetingUrl = `${window.location.origin}/video-meeting/${extractedRoomId}`;
     
     // Create a custom toast for the join options using react-hot-toast
     const toastId = toast.custom(
@@ -319,13 +323,8 @@ const MyBookings = () => {
             className="w-full bg-primary text-white py-2 px-4 rounded-md flex items-center justify-center"
             onClick={() => {
               toast.dismiss(toastId);
-              // Navigate directly to the meeting page if we have a room ID, otherwise use the old approach
-              if (extractedRoomId) {
-                navigate(`/meeting/join/${extractedRoomId}`);
-              } else {
-                // Fallback to the old method
-                navigate(`/meeting-session?link=${encodeURIComponent(meetingLink)}&sessionId=${session._id}&trainerName=${encodeURIComponent(session.trainer.name)}`);
-              }
+              // Navigate directly to the video meeting page
+              navigate(`/video-meeting/${extractedRoomId}`);
             }}
           >
             <Video className="w-4 h-4 mr-2 flex-shrink-0" />
