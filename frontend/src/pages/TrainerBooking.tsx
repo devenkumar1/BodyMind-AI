@@ -53,7 +53,7 @@ function TrainerBooking() {
   const [customPeriod, setCustomPeriod] = useState<'AM' | 'PM'>('AM');
   
   // API URLs
-  const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/user/training`;
+  const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/user/training`;
   
   useEffect(() => {
     getAllTrainers();
