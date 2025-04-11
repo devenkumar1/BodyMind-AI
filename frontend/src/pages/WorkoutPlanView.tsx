@@ -10,18 +10,20 @@ import { toast } from 'react-hot-toast';
 interface Exercise {
   name: string;
   sets: number;
-  reps: number;
-  restTime: number;
+  reps: string;
   description: string;
-  muscleGroup: string;
-  equipment: string;
-  difficulty: string;
+  gifUrl: string;
+}
+
+interface WarmUpExercise {
+  name: string;
+  duration: string;
+  description: string;
+  gifUrl: string;
 }
 
 interface DailyWorkout {
-  warmUp: Exercise[];
-  mainWorkout: Exercise[];
-  coolDown: Exercise[];
+  exercises: Exercise[];
 }
 
 interface WorkoutPlan {
@@ -29,7 +31,18 @@ interface WorkoutPlan {
   name: string;
   description: string;
   schedule: {
+    [key: string]: string;
+  };
+  dailyWorkouts: {
     [key: string]: DailyWorkout;
+  };
+  warmUp: {
+    description: string;
+    exercises: WarmUpExercise[];
+  };
+  coolDown: {
+    description: string;
+    exercises: WarmUpExercise[];
   };
   createdAt: string;
 }
@@ -101,48 +114,51 @@ export function WorkoutPlanView() {
     );
   }
 
-  const renderExerciseList = (exercises: Exercise[], title: string) => (
+  const renderExerciseList = (exercises: Exercise[] | WarmUpExercise[], title: string) => (
     <Card className="mb-4">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {exercises.map((exercise, index) => (
+          {exercises?.map((exercise, index) => (
             <Card key={index}>
               <CardContent className="p-4">
                 <div className="space-y-2">
                   <h4 className="font-medium">{exercise.name}</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Sets</p>
-                      <p className="font-medium">{exercise.sets}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Reps</p>
-                      <p className="font-medium">{exercise.reps}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Rest Time</p>
-                      <p className="font-medium">{exercise.restTime}s</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Difficulty</p>
-                      <p className="font-medium capitalize">{exercise.difficulty}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-sm">Equipment</p>
-                    <p className="text-sm">{exercise.equipment}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground text-sm">Muscle Group</p>
-                    <p className="text-sm">{exercise.muscleGroup}</p>
+                    {'sets' in exercise && (
+                      <>
+                        <div>
+                          <p className="text-muted-foreground">Sets</p>
+                          <p className="font-medium">{exercise.sets}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Reps</p>
+                          <p className="font-medium">{exercise.reps}</p>
+                        </div>
+                      </>
+                    )}
+                    {'duration' in exercise && (
+                      <div>
+                        <p className="text-muted-foreground">Duration</p>
+                        <p className="font-medium">{exercise.duration}</p>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <p className="text-muted-foreground text-sm">Instructions</p>
                     <p className="text-sm">{exercise.description}</p>
                   </div>
+                  {exercise.gifUrl && (
+                    <div className="mt-2">
+                      <img
+                        src={exercise.gifUrl}
+                        alt={exercise.name}
+                        className="w-full max-w-md rounded-lg"
+                      />
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -151,6 +167,8 @@ export function WorkoutPlanView() {
       </CardContent>
     </Card>
   );
+
+  const days = Object.keys(workoutPlan.schedule || {});
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -173,7 +191,7 @@ export function WorkoutPlanView() {
 
         <Tabs value={activeDay} onValueChange={setActiveDay}>
           <TabsList className="grid grid-cols-7 mb-4">
-            {Object.keys(workoutPlan.schedule).map((day) => (
+            {days.map((day) => (
               <TabsTrigger
                 key={day}
                 value={day}
@@ -184,11 +202,13 @@ export function WorkoutPlanView() {
             ))}
           </TabsList>
 
-          {Object.entries(workoutPlan.schedule).map(([day, workout]) => (
+          {days.map((day) => (
             <TabsContent key={day} value={day}>
-              {renderExerciseList(workout.warmUp, 'Warm Up')}
-              {renderExerciseList(workout.mainWorkout, 'Main Workout')}
-              {renderExerciseList(workout.coolDown, 'Cool Down')}
+              <div className="space-y-6">
+                {workoutPlan.warmUp && renderExerciseList(workoutPlan.warmUp.exercises, 'Warm Up')}
+                {workoutPlan.dailyWorkouts[day] && renderExerciseList(workoutPlan.dailyWorkouts[day].exercises, 'Main Workout')}
+                {workoutPlan.coolDown && renderExerciseList(workoutPlan.coolDown.exercises, 'Cool Down')}
+              </div>
             </TabsContent>
           ))}
         </Tabs>

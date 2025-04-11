@@ -13,12 +13,17 @@ interface Meal {
   protein: number;
   carbs: number;
   fat: number;
+  prepTime: number;
+  image: string;
   ingredients: string[];
-  instructions: string[];
+  instructions: string;
 }
 
 interface DailyMeals {
-  meals: Meal[];
+  breakfast: Meal[];
+  lunch: Meal[];
+  dinner: Meal[];
+  snacks: Meal[];
 }
 
 interface MealPlan {
@@ -101,6 +106,60 @@ export function MealPlanView() {
 
   const days = Object.keys(mealPlan.weeklyPlan || {});
 
+  const renderMealType = (meals: Meal[], title: string) => (
+    <div className="space-y-4">
+      <h3 className="font-medium text-lg capitalize">{title}</h3>
+      {meals.map((meal, index) => (
+        <Card key={index}>
+          <CardContent className="p-4">
+            <div className="flex items-start gap-4">
+              <img
+                src={meal.image}
+                alt={meal.name}
+                className="w-24 h-24 object-cover rounded-lg"
+              />
+              <div className="flex-1">
+                <h4 className="font-medium">{meal.name}</h4>
+                <div className="mt-2 grid grid-cols-4 gap-2 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Calories</p>
+                    <p className="font-medium">{meal.calories}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Protein</p>
+                    <p className="font-medium">{meal.protein}g</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Carbs</p>
+                    <p className="font-medium">{meal.carbs}g</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Fat</p>
+                    <p className="font-medium">{meal.fat}g</p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <h5 className="font-medium mb-2">Ingredients</h5>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground">
+                    {meal.ingredients.map((ingredient, i) => (
+                      <li key={i}>{ingredient}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-4">
+                  <h5 className="font-medium mb-2">Instructions</h5>
+                  <p className="text-sm text-muted-foreground">
+                    {meal.instructions}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -116,16 +175,17 @@ export function MealPlanView() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>{mealPlan.name}</CardTitle>
-            <CardDescription>{mealPlan.description}</CardDescription>
-            <div className="mt-2 text-sm text-muted-foreground">
-              Daily Calories: {mealPlan.dailyCalories}
-            </div>
+            <CardDescription>
+              {mealPlan.description}
+              <br />
+              Daily Calories: {mealPlan.dailyCalories} kcal
+            </CardDescription>
           </CardHeader>
         </Card>
 
         <Tabs value={activeDay} onValueChange={setActiveDay}>
           <TabsList className="grid grid-cols-7 mb-4">
-            {days.map((day: string) => (
+            {days.map((day) => (
               <TabsTrigger
                 key={day}
                 value={day}
@@ -136,43 +196,13 @@ export function MealPlanView() {
             ))}
           </TabsList>
 
-          {days.map((day: string) => (
+          {days.map((day) => (
             <TabsContent key={day} value={day}>
               <div className="space-y-6">
-                {mealPlan.weeklyPlan[day]?.meals.map((meal: Meal, index: number) => (
-                  <Card key={index}>
-                    <CardHeader>
-                      <CardTitle className="text-lg">{meal.name}</CardTitle>
-                      <CardDescription>
-                        {meal.calories} calories • {meal.protein}g protein • {meal.carbs}g carbs • {meal.fat}g fat
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-medium mb-2">Ingredients</h4>
-                          <ul className="list-disc pl-4 space-y-1">
-                            {meal.ingredients.map((ingredient: string, i: number) => (
-                              <li key={i} className="text-sm">
-                                {ingredient}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <h4 className="font-medium mb-2">Instructions</h4>
-                          <ol className="list-decimal pl-4 space-y-1">
-                            {meal.instructions.map((instruction: string, i: number) => (
-                              <li key={i} className="text-sm">
-                                {instruction}
-                              </li>
-                            ))}
-                          </ol>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {renderMealType(mealPlan.weeklyPlan[day].breakfast, 'Breakfast')}
+                {renderMealType(mealPlan.weeklyPlan[day].lunch, 'Lunch')}
+                {renderMealType(mealPlan.weeklyPlan[day].dinner, 'Dinner')}
+                {renderMealType(mealPlan.weeklyPlan[day].snacks, 'Snacks')}
               </div>
             </TabsContent>
           ))}
