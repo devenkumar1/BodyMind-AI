@@ -4,6 +4,8 @@ import { generateMealPlan as generateMealPlanService } from "../libs/mealPlanGen
 import { chat } from "../libs/AIChat";
 import { array } from "zod";
 import { generateRecipe } from "../libs/recipeGenerator";
+import SavedMealPlan from "../models/SavedMealPlan";
+import SavedWorkoutPlan from "../models/SavedWorkoutPlan";
 
 export const generateWorkoutPlan = async (req: Request, res: Response) => {
     try {
@@ -191,4 +193,301 @@ export const recipeGenerator = async (req: Request, res: Response) => {
             error: error instanceof Error ? error.message : "Unknown error occurred"
         });
     }
+};
+
+export const saveMealPlan = async (req: Request, res: Response) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    const { name, description, dailyCalories, weeklyPlan } = req.body;
+
+    const savedPlan = await SavedMealPlan.create({
+      user: req.user._id,
+      name,
+      description,
+      dailyCalories,
+      weeklyPlan
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Meal plan saved successfully',
+      data: savedPlan
+    });
+  } catch (error) {
+    console.error('Error saving meal plan:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to save meal plan',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+};
+
+export const saveWorkoutPlan = async (req: Request, res: Response) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    const { name, description, schedule, dailyWorkouts, warmUp, coolDown } = req.body;
+
+    const savedPlan = await SavedWorkoutPlan.create({
+      user: req.user._id,
+      name,
+      description,
+      schedule,
+      dailyWorkouts,
+      warmUp,
+      coolDown
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Workout plan saved successfully',
+      data: savedPlan
+    });
+  } catch (error) {
+    console.error('Error saving workout plan:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to save workout plan',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+};
+
+export const getSavedMealPlans = async (req: Request, res: Response) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    const savedPlans = await SavedMealPlan.find({ user: req.user._id })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: savedPlans
+    });
+  } catch (error) {
+    console.error('Error fetching saved meal plans:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch saved meal plans',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+};
+
+export const getSavedWorkoutPlans = async (req: Request, res: Response) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    const savedPlans = await SavedWorkoutPlan.find({ user: req.user._id })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: savedPlans
+    });
+  } catch (error) {
+    console.error('Error fetching saved workout plans:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch saved workout plans',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+};
+
+export const getSavedMealPlanById = async (req: Request, res: Response) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    const { id } = req.params;
+    const savedPlan = await SavedMealPlan.findOne({ 
+      _id: id,
+      user: req.user._id 
+    });
+
+    if (!savedPlan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Meal plan not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: savedPlan
+    });
+  } catch (error) {
+    console.error('Error fetching saved meal plan:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch saved meal plan',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+};
+
+export const getSavedWorkoutPlanById = async (req: Request, res: Response) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    const { id } = req.params;
+    const savedPlan = await SavedWorkoutPlan.findOne({ 
+      _id: id,
+      user: req.user._id 
+    });
+
+    if (!savedPlan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Workout plan not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: savedPlan
+    });
+  } catch (error) {
+    console.error('Error fetching saved workout plan:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch saved workout plan',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+};
+export const getUserSavedWorkoutPlans = async (req: Request, res: Response) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    const savedPlans = await SavedWorkoutPlan.find({ user: req.user._id })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: savedPlans
+    });
+  } catch (error) {
+    console.error('Error fetching saved workout plans:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch saved workout plans',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+};
+  
+export const getUserSavedMealPlans = async (req: Request, res: Response) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    const savedPlans = await SavedMealPlan.find({ user: req.user._id })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: savedPlans
+    });
+  } catch (error) {
+    console.error('Error fetching saved meal plans:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch saved meal plans',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+};
+
+export const getUserSavedWorkoutPlan = async (req: Request, res: Response) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    const savedPlans = await SavedWorkoutPlan.find({ user: req.user._id })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: savedPlans
+    });
+  } catch (error) {
+    console.error('Error fetching saved workout plans:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch saved workout plans',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
+};  
+
+export const getUserSavedMealPlan = async (req: Request, res: Response) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+    const { id } = req.params;
+    const savedPlans = await SavedMealPlan.find({ _id: id })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: savedPlans
+    });
+  } catch (error) {
+    console.error('Error fetching saved meal plans:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch saved meal plans',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
+  }
 };

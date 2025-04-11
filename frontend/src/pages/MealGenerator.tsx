@@ -9,6 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Apple, Clock, Utensils, UtensilsCrossed, Salad, ChefHat, SaveIcon, RefreshCw, Filter } from 'lucide-react';
 import axios from 'axios';
 import SubscriptionBanner from "@/components/SubscriptionBanner";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { toast } from "react-hot-toast";
+import { Loader2 } from "lucide-react";
 
 const dietTypes = [
   { value: 'balanced', label: 'Balanced' },
@@ -72,6 +76,9 @@ const MealGenerator = () => {
     isHighProtein: false,
     isLowFat: false,
   });
+  const [savingPlan, setSavingPlan] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [planName, setPlanName] = useState('');
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -160,6 +167,34 @@ const MealGenerator = () => {
       ...prev,
       [key]: !prev[key]
     }));
+  };
+
+  const handleSavePlan = async () => {
+    if (!meals) return;
+
+    try {
+      setSavingPlan(true);
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/user/save-meal-plan`,
+        {
+          name: planName || 'My Meal Plan',
+          description: meals.description || 'Custom meal plan',
+          dailyCalories: calories,
+          weeklyPlan: meals.weekly_plan
+        },
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        toast.success('Meal plan saved successfully!');
+        setShowSaveDialog(false);
+      }
+    } catch (error) {
+      console.error('Error saving meal plan:', error);
+      toast.error('Failed to save meal plan. Please try again.');
+    } finally {
+      setSavingPlan(false);
+    }
   };
 
   return (
@@ -412,6 +447,59 @@ const MealGenerator = () => {
           )}
         </div>
       </div>
+
+      {meals && (
+        <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <SaveIcon className="w-4 h-4" /> Save Plan
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save Meal Plan</DialogTitle>
+              <DialogDescription>
+                Give your meal plan a name to save it to your profile.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="plan-name">Plan Name</Label>
+                <Input
+                  id="plan-name"
+                  placeholder="e.g., My Weekly Meal Plan"
+                  value={planName}
+                  onChange={(e) => setPlanName(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowSaveDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSavePlan}
+                disabled={savingPlan}
+              >
+                {savingPlan ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <SaveIcon className="w-4 h-4 mr-2" />
+                    Save Plan
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

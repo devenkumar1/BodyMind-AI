@@ -5,17 +5,42 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState, ChangeEvent } from 'react';
-import { UserCircle, Mail, Key, DumbbellIcon, Calendar, Trophy, Activity } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState, ChangeEvent, useEffect } from 'react';
+import { UserCircle, Mail, Key, DumbbellIcon, Calendar, Trophy, Activity, Dumbbell, Salad, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+
+interface SavedMealPlan {
+  _id: string;
+  name: string;
+  description: string;
+  dailyCalories: number;
+  createdAt: string;
+}
+
+interface SavedWorkoutPlan {
+  _id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+}
 
 export default function Profile() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
   });
+  const [savedMealPlans, setSavedMealPlans] = useState<SavedMealPlan[]>([]);
+  const [savedWorkoutPlans, setSavedWorkoutPlan] = useState<SavedWorkoutPlan[]>([]);
+  const [selectedMealPlan, setSelectedMealPlan] = useState<SavedMealPlan | null>(null);
+  const [selectedWorkoutPlan, setSelectedWorkoutPlan] = useState<SavedWorkoutPlan | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Mock data for demonstration
   const workoutStats = {
@@ -34,6 +59,63 @@ export default function Profile() {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  useEffect(() => {
+    const fetchSavedPlans = async () => {
+      try {
+        const [mealPlansRes, workoutPlansRes] = await Promise.all([
+          axios.get(`${import.meta.env.VITE_API_URL}/api/user/saved-meal-plans`, { withCredentials: true }),
+          axios.get(`${import.meta.env.VITE_API_URL}/api/user/saved-workout-plans`, { withCredentials: true })
+        ]);
+
+        if (mealPlansRes.data.success) {
+          setSavedMealPlans(mealPlansRes.data.data);
+        }
+        if (workoutPlansRes.data.success) {
+          setSavedWorkoutPlan(workoutPlansRes.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching saved plans:', error);
+        toast.error('Failed to fetch saved plans');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSavedPlans();
+  }, []);
+
+  const handleViewMealPlan = async (id: string) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/user/saved-meal-plans/${id}`,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        navigate(`/meal-plan/${id}`);
+      }
+    } catch (error) {
+      console.error('Error fetching meal plan:', error);
+      toast.error('Failed to fetch meal plan');
+    }
+  };
+
+  const handleViewWorkoutPlan = async (id: string) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/user/saved-workout-plans/${id}`,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        navigate(`/workout-plan/${id}`);
+      }
+    } catch (error) {
+      console.error('Error fetching workout plan:', error);
+      toast.error('Failed to fetch workout plan');
+    }
   };
 
   return (
@@ -207,6 +289,101 @@ export default function Profile() {
                 </CardHeader>
                 <CardContent>
                   {/* Add preference settings here */}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          <Tabs defaultValue="meal-plans">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="meal-plans" className="flex items-center gap-2">
+                <Salad className="w-4 h-4" />
+                Meal Plans
+              </TabsTrigger>
+              <TabsTrigger value="workout-plans" className="flex items-center gap-2">
+                <Dumbbell className="w-4 h-4" />
+                Workout Plans
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="meal-plans">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Saved Meal Plans</CardTitle>
+                  <CardDescription>Your personalized meal plans</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-4">
+                      {savedMealPlans.map((plan) => (
+                        <Card key={plan._id} className="cursor-pointer hover:bg-accent/50" onClick={() => handleViewMealPlan(plan._id)}>
+                          <CardContent className="p-4 flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{plan.name}</h4>
+                              <p className="text-sm text-muted-foreground">{plan.description}</p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {new Date(plan.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                          </CardContent>
+                        </Card>
+                      ))}
+                      {savedMealPlans.length === 0 && !loading && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No saved meal plans yet</p>
+                          <Button 
+                            variant="outline" 
+                            className="mt-4"
+                            onClick={() => navigate('/meal-generator')}
+                          >
+                            Create a Meal Plan
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="workout-plans">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Saved Workout Plans</CardTitle>
+                  <CardDescription>Your personalized workout plans</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-4">
+                      {savedWorkoutPlans.map((plan) => (
+                        <Card key={plan._id} className="cursor-pointer hover:bg-accent/50" onClick={() => handleViewWorkoutPlan(plan._id)}>
+                          <CardContent className="p-4 flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{plan.name}</h4>
+                              <p className="text-sm text-muted-foreground">{plan.description}</p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {new Date(plan.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                          </CardContent>
+                        </Card>
+                      ))}
+                      {savedWorkoutPlans.length === 0 && !loading && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No saved workout plans yet</p>
+                          <Button 
+                            variant="outline" 
+                            className="mt-4"
+                            onClick={() => navigate('/workout-generator')}
+                          >
+                            Create a Workout Plan
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
                 </CardContent>
               </Card>
             </TabsContent>

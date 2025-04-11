@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
 import { z } from 'zod';
+import SavedWorkoutPlan from '../models/SavedWorkoutPlan';
 
 // Validation schema for user update
 const updateUserSchema = z.object({
@@ -59,4 +60,19 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 }; 
+
+export const getUserSavedWorkoutPlans = async (req: Request, res: Response) => {
+  try {
+    const  id = req.user._id;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const savedWorkoutPlans = await SavedWorkoutPlan.find({ user: id });
+    res.json(savedWorkoutPlans);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+}
 

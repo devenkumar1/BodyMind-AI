@@ -1,7 +1,7 @@
 import express from 'express';
 import {getUserProfile, updateUserProfile } from '../controllers/user.controller';
 import { protect } from '../middlewares/auth.middleware';
-import { generateWorkoutPlan, generateMealPlan, ChatWithAI, recipeGenerator } from '../controllers/fitness.controller';
+import { generateWorkoutPlan, generateMealPlan, ChatWithAI, recipeGenerator, saveMealPlan, saveWorkoutPlan, getSavedMealPlans, getSavedWorkoutPlans,getUserSavedWorkoutPlans, getUserSavedMealPlans } from '../controllers/fitness.controller';
 import { canGenerateWorkoutPlan, canGenerateMealPlan } from '../middlewares/subscription.middleware';
 import subscriptionRoutes from '../routes/subscription.routes';
 import trainerRoutes from './Trainer.routes'
@@ -22,6 +22,15 @@ router.post('/generate-meal-plan', protect, canGenerateMealPlan, generateMealPla
 
 router.post('/ai-chat', ChatWithAI);
 router.post('/ai-recipe', recipeGenerator);
+
+// Save and fetch meal plans
+router.post('/save-meal-plan', protect, saveMealPlan);
+router.get('/saved-meal-plans', protect, getUserSavedMealPlans);
+router.get('/saved-meal-plans/:id', protect, getUserSavedMealPlans);
+
+// Save and fetch workout plans
+router.post('/save-workout-plan', protect, saveWorkoutPlan);
+router.get('/saved-workout-plans', protect, getUserSavedWorkoutPlans);
 
 // Subscription routes
 router.use('/subscription', subscriptionRoutes);

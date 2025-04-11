@@ -21,12 +21,14 @@ import {
   ArrowRight,
   CheckCircle,
   Loader2,
+  SaveIcon,
 } from 'lucide-react';
 import axios from 'axios';
 import { Input } from "@/components/ui/Input";
 import { WorkoutPlanDisplay } from "@/components/WorkoutPlanDisplay";
 import { useToast } from "@/components/ui/use-toast";
 import SubscriptionBanner from "@/components/SubscriptionBanner";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const fitnessLevels = [
   { value: 'beginner', label: 'Beginner' },
@@ -111,6 +113,9 @@ const WorkoutGenerator = () => {
     daysPerweek: ""
   });
   const [subscriptionRequired, setSubscriptionRequired] = useState(false);
+  const [savingPlan, setSavingPlan] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [planName, setPlanName] = useState('');
   
   const handleEquipmentChange = (checked: boolean, id: string) => {
     if (checked) {
@@ -171,6 +176,36 @@ const WorkoutGenerator = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleSavePlan = async () => {
+    if (!workoutPlan) return;
+
+    try {
+      setSavingPlan(true);
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/user/save-workout-plan`,
+        {
+          name: planName || 'My Workout Plan',
+          description: workoutPlan.description,
+          schedule: workoutPlan.schedule,
+          dailyWorkouts: workoutPlan.daily_workouts,
+          warmUp: workoutPlan.warm_up,
+          coolDown: workoutPlan.cool_down
+        },
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        toast.success('Workout plan saved successfully!');
+        setShowSaveDialog(false);
+      }
+    } catch (error) {
+      console.error('Error saving workout plan:', error);
+      toast.error('Failed to save workout plan. Please try again.');
+    } finally {
+      setSavingPlan(false);
+    }
   };
 
   return (
@@ -332,6 +367,59 @@ const WorkoutGenerator = () => {
           )}
         </div>
       </div>
+
+      {workoutPlan && (
+        <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <SaveIcon className="w-4 h-4" /> Save Plan
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save Workout Plan</DialogTitle>
+              <DialogDescription>
+                Give your workout plan a name to save it to your profile.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="plan-name">Plan Name</Label>
+                <Input
+                  id="plan-name"
+                  placeholder="e.g., My Weekly Workout"
+                  value={planName}
+                  onChange={(e) => setPlanName(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowSaveDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSavePlan}
+                disabled={savingPlan}
+              >
+                {savingPlan ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <SaveIcon className="w-4 h-4 mr-2" />
+                    Save Plan
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

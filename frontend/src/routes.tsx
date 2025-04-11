@@ -1,81 +1,78 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from '@/components/theme-provider';
+import { NetworkProvider } from '@/context/NetworkContext';
+import { AuthProvider } from '@/context/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import Home from '@/pages/Home';
+import Profile from '@/pages/Profile';
+import MealGenerator from '@/pages/MealGenerator';
+import WorkoutGenerator from '@/pages/WorkoutGenerator';
+import VideoMeeting from '@/pages/VideoMeeting';
+import TrainerDashboard from '@/pages/TrainerDashboard';
+import MyBookings from '@/pages/MyBookings';
+import { MealPlanView } from '@/pages/MealPlanView';
+import { WorkoutPlanView } from '@/pages/WorkoutPlanView';
+import { Toaster } from 'react-hot-toast';
+import { PWAStatus } from '@/components/PWAStatus';
+import { InstallPrompt } from '@/components/InstallPrompt';
 import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
-import Home from './pages/Home';
-import Profile from './pages/Profile';
-import Training from './pages/Training';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ProtectedRoute from './components/ProtectedRoute';
-import AuthCallback from './pages/AuthCallback';
-import Dashboard from './pages/Dashboard';
-import LandingPage from './pages/LandingPage';
-import MealGenerator from './pages/MealGenerator';
-import WorkoutGenerator from './pages/WorkoutGenerator';
-import Subscription from './pages/Subscription';
-import { useAuth } from './context/AuthContext';
-import Assistant from './pages/Assistant';
-import AiRecipe from './pages/AiRecipe';
-import TrainerBooking from './pages/TrainerBooking';
-import MyBookings from './pages/MyBookings';
-import AdminDashboard from './pages/admin/Dashboard';
-import TrainerDashboard from './pages/TrainerDashboard';
-import VideoMeeting from './pages/VideoMeeting';
-import MeetingSession from './components/MeetingSession';
-import TestMeeting from './pages/TestMeeting';
-import { Input } from '@/components/ui/Input';
 
-export default function AppRoutes() {
-  const { isAuthenticated } = useAuth();
-
+export function AppRoutes() {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Navbar />
-      <main className="flex-1">
-        <Routes>
-          {/* Homepage route - redirects based on authentication status */}
-          <Route path="/" element={
-            isAuthenticated ? <Home /> : <LandingPage />
-          } />
-
-          {/* Public routes - redirect if already authenticated */}
-          <Route path="/login" element={
-            isAuthenticated ? <Navigate to="/home" replace /> : <Login />
-          } />
-          <Route path="/register" element={
-            isAuthenticated ? <Navigate to="/home" replace /> : <Register />
-          } />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          
-          {/* Protected routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/home" element={<Home />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/training" element={<Training />} />
-            <Route path="/meal-generator" element={<MealGenerator />} />
-            <Route path="/workout-generator" element={<WorkoutGenerator />} />
-            <Route path="/subscription" element={<Subscription />} />
-            <Route path="/meal-plan" element={<Navigate to="/meal-generator" />} />
-            <Route path="/ai-assistant" element={<Assistant/>} />
-            <Route path="/ai-recipe" element={<AiRecipe/>} />
-            <Route path="/my-bookings" element={<MyBookings />} />
-            <Route path="/video-meeting/:roomId" element={<VideoMeeting />} />
-            <Route path="/meeting/join/:roomId" element={<VideoMeeting />} />
-            <Route path="/meeting-session" element={<MeetingSession />} />
-            <Route path="/test-meeting" element={<TestMeeting />} />
-            
-            {/* Role-specific routes */}
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
-          </Route>
-
-          <Route path="/booking" element={<TrainerBooking />} />
-
-          {/* Fallback route */}
-          <Route path="*" element={<div>Not Found</div>} />
-        </Routes>
-      </main>
-      <Footer />
-    </div>
+    <Router>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <NetworkProvider>
+          <AuthProvider>
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-1">
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/meal-generator" element={<MealGenerator />} />
+                    <Route path="/workout-generator" element={<WorkoutGenerator />} />
+                    <Route path="/video-meeting/:roomId" element={<VideoMeeting />} />
+                    <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
+                    <Route path="/my-bookings" element={<MyBookings />} />
+                    <Route path="/meal-plan/:id" element={<MealPlanView />} />
+                    <Route path="/workout-plan/:id" element={<WorkoutPlanView />} />
+                  </Route>
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </main>
+            </div>
+            <PWAStatus />
+            <InstallPrompt />
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                },
+                success: {
+                  duration: 3000,
+                  style: {
+                    background: '#10b981',
+                  },
+                },
+                error: {
+                  duration: 5000,
+                  style: {
+                    background: '#ef4444',
+                  },
+                },
+              }}
+            />
+          </AuthProvider>
+        </NetworkProvider>
+      </ThemeProvider>
+    </Router>
   );
 }
