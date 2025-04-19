@@ -46,6 +46,16 @@ export function Navbar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Handle logo click with dedicated function
+  const handleLogoClick = () => {
+    console.log('Logo clicked, auth status:', isAuthenticated);
+    if (isAuthenticated) {
+      navigate('/home');
+    } else {
+      navigate('/');
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -85,7 +95,7 @@ export function Navbar() {
   const workoutNavItems = [
     { path: '/workout-generator', label: 'Workout Builder', icon: <Activity className="w-4 h-4 mr-2" /> },
     { path: '/training', label: 'Training', icon: <Dumbbell className="w-4 h-4 mr-2" /> },
-    { path: '/booking', label: 'Book Trainer', icon: <Calendar className="w-4 h-4 mr-2" /> },
+    { path: '/book-trainer', label: 'Book Trainer', icon: <Calendar className="w-4 h-4 mr-2" /> },
     { path: '/my-bookings', label: 'My Bookings', icon: <Calendar className="w-4 h-4 mr-2" /> }
   ];
 
@@ -106,7 +116,7 @@ export function Navbar() {
   ];
 
   const trainerNavItems = [
-    { path: '/trainer/dashboard', label: 'Trainer Dashboard', icon: <ClipboardList className="w-4 h-4 mr-2" /> }
+    { path: '/trainer-dashboard', label: 'Trainer Dashboard', icon: <ClipboardList className="w-4 h-4 mr-2" /> }
   ];
 
   const navItems = [
@@ -158,11 +168,20 @@ export function Navbar() {
       <div className="container flex h-14 items-center justify-between">
         {/* Logo */}
         <div className="flex-shrink-0">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-xl">
-              BodyMind AI
-            </span>
-          </Link>
+          {/* Render different links based on authentication status */}
+          {isAuthenticated ? (
+            <Link to="/home" className="flex items-center space-x-2">
+              <span className="font-bold text-xl">
+                BodyMind AI
+              </span>
+            </Link>
+          ) : (
+            <Link to="/" className="flex items-center space-x-2">
+              <span className="font-bold text-xl">
+                BodyMind AI
+              </span>
+            </Link>
+          )}
         </div>
 
         {/* Desktop Navigation */}

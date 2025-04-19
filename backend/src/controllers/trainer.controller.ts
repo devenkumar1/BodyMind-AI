@@ -2,16 +2,33 @@ import { Request, Response } from "express";
 import User from "../models/user.model";
 import { TrainingSession } from "../models/TrainingSession";
 
-export const getAllTrainers=async(req:Request,res:Response)=>{
+export const getAllTrainers = async(req: Request, res: Response) => {
+    console.log('GET /trainer/allTrainers called');
     try {
-        const trainers= await User.find({ role: 'TRAINER' });
-        if(!trainers || trainers.length === 0)  return res.status(400).json({message:"no available trainers",trainers:null});
-        res.status(200).json({message:"trainers fetched successfully",trainers});
+        // Find all users with TRAINER role
+        const trainers = await User.find({ role: 'TRAINER' });
+        console.log(`Found ${trainers.length} trainers`);
+        
+        if(!trainers || trainers.length === 0) {
+            console.log('No trainers found in database');
+            return res.status(200).json({
+                message: "No available trainers",
+                trainers: []
+            });
+        }
+        
+        // Return success with trainers
+        return res.status(200).json({
+            message: "Trainers fetched successfully",
+            trainers
+        });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({message:"internal server error",error});
+        console.error('Error in getAllTrainers:', error);
+        return res.status(500).json({
+            message: "Internal server error when fetching trainers",
+            error: error.message
+        });
     }
-
 }
 
 export const bookTrainer=async (req:Request,res:Response)=>{

@@ -11,8 +11,8 @@ import { useAuth } from '@/context/AuthContext';
 
 // Define API_BASE_URL the same way as in other components
 const API_BASE_URL = import.meta.env.VITE_API_URL ?
-  `${import.meta.env.VITE_API_URL}/api/user/training` :
-  'http://localhost:5000/api/user/training';
+  `${import.meta.env.VITE_API_URL}/api/user/trainer` :
+  'http://localhost:5000/api/user/trainer';
 
 const TestMeeting = () => {
   const navigate = useNavigate();

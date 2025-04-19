@@ -13,7 +13,8 @@ import {
   rejectSessionRequest 
 } from "../controllers/trainer.controller";
 
-router.get('/allTrainers',getAllTrainers);
+// Public endpoint to get all trainers - no auth required
+router.get('/allTrainers', getAllTrainers);
 router.post('/bookTrainer',bookTrainer);
 router.post('/accept',acceptSessionRequest);
 router.post('/reject',rejectSessionRequest);

@@ -53,7 +53,7 @@ function TrainerBooking() {
   const [customPeriod, setCustomPeriod] = useState<'AM' | 'PM'>('AM');
   
   // API URLs
-  const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/user/training`;
+  const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/user`;
   
   useEffect(() => {
     getAllTrainers();
@@ -97,19 +97,26 @@ function TrainerBooking() {
 
   const getAllTrainers = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/allTrainers`);
+      console.log(`Fetching trainers from: ${API_BASE_URL}/trainer/allTrainers`);
+      const response = await axios.get(`${API_BASE_URL}/trainer/allTrainers`, {
+        withCredentials: true
+      });
+      
+      console.log("API response:", response.data);
       
       if (response.data && response.data.trainers) {
         console.log("Trainers data:", response.data.trainers);
         setTrainers(response.data.trainers);
       } else {
-        toast.error('Failed to load trainers');
+        console.error('Unexpected response format:', response.data);
+        toast.error('Failed to load trainers: Unexpected response format');
       }
     } catch (error: any) {
       console.error("Error getting trainers:", error);
-      toast.error('Error loading trainers. Please try again.');
+      console.error("Response details:", error.response?.status, error.response?.data);
+      toast.error(`Error loading trainers: ${error.response?.data?.message || error.message}`);
     }
-  }
+  };
 
   // New function to handle custom time changes
   const handleCustomTimeChange = () => {
@@ -255,12 +262,14 @@ function TrainerBooking() {
       }
       
       // Send booking data to the server
-      const response = await axios.post(`${API_BASE_URL}/bookTrainer`, {
+      const response = await axios.post(`${API_BASE_URL}/trainer/bookTrainer`, {
         trainerId: selectedTrainerInfo._id,
         userId: userId,
         meetingLink: meetingData.meetingLink,
-        roomId: meetingData.roomId,
         scheduledTime: scheduledDateTime.toISOString(),
+        roomId: meetingData.roomId
+      }, {
+        withCredentials: true
       });
 
       if (response.data && response.data.TrainingSession) {

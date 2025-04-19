@@ -21,6 +21,7 @@ import { InstallPrompt } from '@/components/InstallPrompt';
 import { Navbar } from '@/components/Navbar';
 import LandingPage from './pages/LandingPage';
 import AuthCallback from '@/pages/AuthCallback';
+import TrainerBooking from './pages/TrainerBooking';
 
 export function AppRoutes() {
   return (
@@ -43,6 +44,7 @@ export function AppRoutes() {
                     <Route path="/workout-generator" element={<WorkoutGenerator />} />
                     <Route path="/video-meeting/:roomId" element={<VideoMeeting />} />
                     <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
+                    <Route path="/book-trainer" element={<TrainerBooking />} />
                     <Route path="/my-bookings" element={<MyBookings />} />
                     <Route path="/subscription" element={<Subscription />} />
                     <Route path="/meal-plan/:id" element={<MealPlanView />} />

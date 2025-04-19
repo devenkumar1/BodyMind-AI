@@ -26,8 +26,8 @@ import { RefreshCw, CheckCircle2, XCircle, Video, Clock, Calendar, AlertCircle, 
 
 // API URLs
 const API_BASE_URL = import.meta.env.VITE_API_URL ? 
-  `${import.meta.env.VITE_API_URL}/api/user/training` : 
-  'http://localhost:5000/api/user/training';
+  `${import.meta.env.VITE_API_URL}/api/user/trainer` : 
+  'http://localhost:5000/api/user/trainer';
 
 interface TrainingSession {
   _id: string;
