@@ -94,7 +94,6 @@ export function Navbar() {
   // Group navigation items by category
   const workoutNavItems = [
     { path: '/workout-generator', label: 'Workout Builder', icon: <Activity className="w-4 h-4 mr-2" /> },
-    { path: '/training', label: 'Training', icon: <Dumbbell className="w-4 h-4 mr-2" /> },
     { path: '/book-trainer', label: 'Book Trainer', icon: <Calendar className="w-4 h-4 mr-2" /> },
     { path: '/my-bookings', label: 'My Bookings', icon: <Calendar className="w-4 h-4 mr-2" /> }
   ];
@@ -107,7 +106,7 @@ export function Navbar() {
   const aiNavItems = [
     { path: '/ai-assistant', label: 'AI Assistant', icon: <Brain className="w-4 h-4 mr-2" /> },
     // Add test meeting option only in development mode
-    ...(import.meta.env.DEV ? [{ path: '/test-meeting', label: 'Test Meeting', icon: <Video className="w-4 h-4 mr-2" /> }] : [])
+    { path: '/video-meeting', label: 'Video Meeting', icon: <Video className="w-4 h-4 mr-2" /> }
   ];
 
   // Role-specific navigation items

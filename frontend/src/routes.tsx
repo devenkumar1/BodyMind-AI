@@ -22,6 +22,7 @@ import { Navbar } from '@/components/Navbar';
 import LandingPage from './pages/LandingPage';
 import AuthCallback from '@/pages/AuthCallback';
 import TrainerBooking from './pages/TrainerBooking';
+import AiRecipe from './pages/AiRecipe';
 
 export function AppRoutes() {
   return (
@@ -46,7 +47,9 @@ export function AppRoutes() {
                     <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
                     <Route path="/book-trainer" element={<TrainerBooking />} />
                     <Route path="/my-bookings" element={<MyBookings />} />
+                    <Route path="/ai-recipe" element={<AiRecipe />} />
                     <Route path="/subscription" element={<Subscription />} />
+                    <Route path="/video-meeting" element={<MyBookings />} />
                     <Route path="/meal-plan/:id" element={<MealPlanView />} />
                     <Route path="/workout-plan/:id" element={<WorkoutPlanView />} />
                   </Route>
