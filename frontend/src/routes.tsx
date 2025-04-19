@@ -14,11 +14,13 @@ import TrainerDashboard from '@/pages/TrainerDashboard';
 import MyBookings from '@/pages/MyBookings';
 import { MealPlanView } from '@/pages/MealPlanView';
 import { WorkoutPlanView } from '@/pages/WorkoutPlanView';
+import Subscription from '@/pages/Subscription';
 import { Toaster } from 'react-hot-toast';
 import { PWAStatus } from '@/components/PWAStatus';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { Navbar } from '@/components/Navbar';
 import LandingPage from './pages/LandingPage';
+import AuthCallback from '@/pages/AuthCallback';
 
 export function AppRoutes() {
   return (
@@ -33,6 +35,7 @@ export function AppRoutes() {
                   <Route path="/" element={<LandingPage/>} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route element={<ProtectedRoute />}>
                     <Route path="/home" element={<Home />} />
                     <Route path="/profile" element={<Profile />} />
@@ -41,6 +44,7 @@ export function AppRoutes() {
                     <Route path="/video-meeting/:roomId" element={<VideoMeeting />} />
                     <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
                     <Route path="/my-bookings" element={<MyBookings />} />
+                    <Route path="/subscription" element={<Subscription />} />
                     <Route path="/meal-plan/:id" element={<MealPlanView />} />
                     <Route path="/workout-plan/:id" element={<WorkoutPlanView />} />
                   </Route>
