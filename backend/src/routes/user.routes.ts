@@ -32,7 +32,7 @@ router.post('/generate-workout-plan', protect, canGenerateWorkoutPlan, generateW
 router.post('/generate-meal-plan', protect, canGenerateMealPlan, generateMealPlan);
 
 // POST /api/users/chat - Chat with AI
-router.post('/chat', protect, ChatWithAI);
+router.post('/ai-chat', protect, ChatWithAI);
 
 // POST /api/users/generate-recipe - Generate recipe
 router.post('/generate-recipe', protect, recipeGenerator);
