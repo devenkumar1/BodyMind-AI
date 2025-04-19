@@ -18,6 +18,7 @@ import { Toaster } from 'react-hot-toast';
 import { PWAStatus } from '@/components/PWAStatus';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { Navbar } from '@/components/Navbar';
+import LandingPage from './pages/LandingPage';
 
 export function AppRoutes() {
   return (
@@ -29,10 +30,11 @@ export function AppRoutes() {
               <Navbar />
               <main className="flex-1">
                 <Routes>
+                  <Route path="/" element={<LandingPage/>} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route element={<ProtectedRoute />}>
-                    <Route path="/" element={<Home />} />
+                    <Route path="/home" element={<Home />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/meal-generator" element={<MealGenerator />} />
                     <Route path="/workout-generator" element={<WorkoutGenerator />} />
@@ -42,7 +44,7 @@ export function AppRoutes() {
                     <Route path="/meal-plan/:id" element={<MealPlanView />} />
                     <Route path="/workout-plan/:id" element={<WorkoutPlanView />} />
                   </Route>
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<Navigate to="/home" replace />} />
                 </Routes>
               </main>
             </div>
