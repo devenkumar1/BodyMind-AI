@@ -23,6 +23,7 @@ import LandingPage from './pages/LandingPage';
 import AuthCallback from '@/pages/AuthCallback';
 import TrainerBooking from './pages/TrainerBooking';
 import AiRecipe from './pages/AiRecipe';
+import Assistant from './pages/Assistant';
 
 export function AppRoutes() {
   return (
@@ -51,6 +52,8 @@ export function AppRoutes() {
                     <Route path="/subscription" element={<Subscription />} />
                     <Route path="/video-meeting" element={<MyBookings />} />
                     <Route path="/meal-plan/:id" element={<MealPlanView />} />
+                    <Route path="/ai-assistant" element={<Assistant/>} />
+                    
                     <Route path="/workout-plan/:id" element={<WorkoutPlanView />} />
                   </Route>
                   <Route path="*" element={<Navigate to="/home" replace />} />
